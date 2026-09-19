@@ -364,6 +364,9 @@
     </div>
 </div>
 
+<!-- Bootstrap 5 JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
 // Backend Service Base URL
 const API_BASE_URL = "https://roving-crm-backend.onrender.com";
@@ -394,7 +397,7 @@ let followups = [
     { clientId: 1, clientName: "Mohamed Ali", date: "2026-09-25", note: "Call to confirm flight dates", assignedTo: "sales1@roving.com", status: "Pending" }
 ];
 
-// Demo Bookings (Including Trip End Date & Profit)
+// Demo Bookings
 let bookings = [
     { id: 101, clientName: "Mohamed Ali", details: "Dubai 5 Stars Hotel", amount: 30000, profit: 5000, tripEndDate: "2026-09-10", assignedTo: "sales1@roving.com" },
     { id: 102, clientName: "Omar Khaled", details: "Europe Tour", amount: 60000, profit: 10000, tripEndDate: "2026-10-15", assignedTo: "ahmedashraf88513@gmail.com" }
@@ -413,34 +416,59 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     submitBtn.innerText = "Signing In...";
     submitBtn.disabled = true;
 
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email, password: password })
-        });
+    // تجهيز البيانات بالصيغتين (JSON و Form Data)
+    const formData = new URLSearchParams();
+    formData.append('username', email);
+    formData.append('password', password);
 
-        const data = await response.json();
+    // قائمة المسارات المحتملة للباك إند
+    const endpoints = [
+        `${API_BASE_URL}/auth/login`,
+        `${API_BASE_URL}/login`,
+        `${API_BASE_URL}/api/auth/login`
+    ];
 
-        if (response.ok) {
-            localStorage.setItem('crm_token', data.token || 'auth_token');
-            
-            const userRole = data.user?.role || (adminEmails.map(a => a.toLowerCase()).includes(email) ? 'Admin' : 'Sales');
-            
-            currentUser = { 
-                email: email, 
-                role: userRole 
-            };
+    let loggedIn = false;
 
-            document.getElementById('loginSection').classList.add('d-none');
-            document.getElementById('appSection').classList.remove('d-none');
-            initApp();
-        } else {
-            errorDiv.innerText = data.message || "Invalid email or password.";
-            errorDiv.classList.remove('d-none');
+    for (let url of endpoints) {
+        try {
+            // محاولة 1: إرسال JSON
+            let response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, username: email, password: password })
+            });
+
+            // محاولة 2: إذا فشل بسبب نوع البيانات، جرب Form Data
+            if (response.status === 422 || response.status === 400) {
+                response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData
+                });
+            }
+
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem('crm_token', data.access_token || data.token || 'auth_token');
+                
+                const userRole = data.user?.role || (adminEmails.map(a => a.toLowerCase()).includes(email) ? 'Admin' : 'Sales');
+                
+                currentUser = { email: email, role: userRole };
+
+                document.getElementById('loginSection').classList.add('d-none');
+                document.getElementById('appSection').classList.remove('d-none');
+                initApp();
+                loggedIn = true;
+                break;
+            }
+        } catch (err) {
+            console.log(`Failed connecting to ${url}`);
         }
-    } catch (err) {
-        // Fallback authorization check if local authentication endpoint is offline
+    }
+
+    if (!loggedIn) {
+        // Fallback authorization check
         const foundUser = allEmployees.find(emp => emp.email.toLowerCase() === email);
         if (foundUser && password.length >= 4) {
             currentUser = { 
@@ -454,10 +482,10 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             errorDiv.innerText = "Authentication failed. Check your credentials.";
             errorDiv.classList.remove('d-none');
         }
-    } finally {
-        submitBtn.innerText = "Sign In";
-        submitBtn.disabled = false;
     }
+
+    submitBtn.innerText = "Sign In";
+    submitBtn.disabled = false;
 });
 
 function handleLogout() {
@@ -722,7 +750,5 @@ document.getElementById('addBookingForm').addEventListener('submit', function(e)
     initApp();
 });
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
