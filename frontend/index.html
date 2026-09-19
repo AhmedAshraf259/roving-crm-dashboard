@@ -115,7 +115,7 @@
                 <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
             </div>
             <div id="loginError" class="alert alert-danger py-2 d-none" role="alert"></div>
-            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Sign In</button>
+            <button type="submit" id="loginSubmitBtn" class="btn btn-primary w-100 py-2 fw-bold">Sign In</button>
         </form>
     </div>
 </div>
@@ -365,6 +365,9 @@
 </div>
 
 <script>
+// Backend Service Base URL
+const API_BASE_URL = "https://roving-crm-backend.onrender.com";
+
 // Authorized Admin Accounts
 const adminEmails = [
     "asmaa.ashraf.1312002@gmail.com", 
@@ -393,35 +396,73 @@ let followups = [
 
 // Demo Bookings (Including Trip End Date & Profit)
 let bookings = [
-    { id: 101, clientName: "Mohamed Ali", details: "Dubai 5 Stars Hotel", amount: 30000, profit: 5000, tripEndDate: "2026-09-10", assignedTo: "sales1@roving.com" }, // Completed trip
-    { id: 102, clientName: "Omar Khaled", details: "Europe Tour", amount: 60000, profit: 10000, tripEndDate: "2026-10-15", assignedTo: "ahmedashraf88513@gmail.com" } // Upcoming trip
+    { id: 101, clientName: "Mohamed Ali", details: "Dubai 5 Stars Hotel", amount: 30000, profit: 5000, tripEndDate: "2026-09-10", assignedTo: "sales1@roving.com" },
+    { id: 102, clientName: "Omar Khaled", details: "Europe Tour", amount: 60000, profit: 10000, tripEndDate: "2026-10-15", assignedTo: "ahmedashraf88513@gmail.com" }
 ];
 
-// Login Handling
-document.getElementById('loginForm').addEventListener('submit', function(e) {
+// Authenticated Login via Render Backend
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
+    
     const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-    
-    const foundUser = allEmployees.find(emp => emp.email.toLowerCase() === email);
-    
-    if (foundUser) {
-        currentUser = { 
-            email: foundUser.email, 
-            role: adminEmails.map(a => a.toLowerCase()).includes(foundUser.email) ? 'Admin' : 'Sales' 
-        };
-        document.getElementById('loginSection').classList.add('d-none');
-        document.getElementById('appSection').classList.remove('d-none');
-        document.getElementById('loginError').classList.add('d-none');
-        initApp();
-    } else {
-        const errorDiv = document.getElementById('loginError');
-        errorDiv.innerText = "Email address not authorized.";
-        errorDiv.classList.remove('d-none');
+    const password = document.getElementById('loginPassword').value;
+    const errorDiv = document.getElementById('loginError');
+    const submitBtn = document.getElementById('loginSubmitBtn');
+
+    errorDiv.classList.add('d-none');
+    submitBtn.innerText = "Signing In...";
+    submitBtn.disabled = true;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, password: password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            localStorage.setItem('crm_token', data.token || 'auth_token');
+            
+            const userRole = data.user?.role || (adminEmails.map(a => a.toLowerCase()).includes(email) ? 'Admin' : 'Sales');
+            
+            currentUser = { 
+                email: email, 
+                role: userRole 
+            };
+
+            document.getElementById('loginSection').classList.add('d-none');
+            document.getElementById('appSection').classList.remove('d-none');
+            initApp();
+        } else {
+            errorDiv.innerText = data.message || "Invalid email or password.";
+            errorDiv.classList.remove('d-none');
+        }
+    } catch (err) {
+        // Fallback authorization check if local authentication endpoint is offline
+        const foundUser = allEmployees.find(emp => emp.email.toLowerCase() === email);
+        if (foundUser && password.length >= 4) {
+            currentUser = { 
+                email: foundUser.email, 
+                role: adminEmails.map(a => a.toLowerCase()).includes(foundUser.email) ? 'Admin' : 'Sales' 
+            };
+            document.getElementById('loginSection').classList.add('d-none');
+            document.getElementById('appSection').classList.remove('d-none');
+            initApp();
+        } else {
+            errorDiv.innerText = "Authentication failed. Check your credentials.";
+            errorDiv.classList.remove('d-none');
+        }
+    } finally {
+        submitBtn.innerText = "Sign In";
+        submitBtn.disabled = false;
     }
 });
 
 function handleLogout() {
     currentUser = null;
+    localStorage.removeItem('crm_token');
     document.getElementById('loginSection').classList.remove('d-none');
     document.getElementById('appSection').classList.add('d-none');
 }
@@ -539,7 +580,6 @@ function renderBookings() {
     });
 }
 
-// Dynamic Commission Logic tied to Trip Completion Date
 function renderCommissions() {
     const tbody = document.getElementById('commissionsTableBody');
     tbody.innerHTML = '';
@@ -551,7 +591,6 @@ function renderCommissions() {
 
     list.forEach(b => {
         totalProfit += b.profit;
-        // Calculation: 10% of profit (without rendering the percentage string directly)
         const commValue = b.profit * 0.10; 
         const isCompleted = b.tripEndDate <= today;
 
