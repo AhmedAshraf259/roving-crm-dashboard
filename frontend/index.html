@@ -164,19 +164,20 @@
             <div id="tabClients" class="tab-content-item">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="fw-bold text-roving-green">Client Directory</h2>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addClientModal"><i class="fa-solid fa-plus me-1"></i> Add Client</button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addClientModal" onclick="openAddClientModal()"><i class="fa-solid fa-plus me-1"></i> Add Client</button>
                 </div>
                 <div class="card card-custom p-3">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Phone</th>
-                                    <th>Service</th>
-                                    <th>Created By</th>
+                                    <th>Name *</th>
+                                    <th>Source *</th>
+                                    <th>Contact Info</th>
+                                    <th>Passport Info</th>
                                     <th>Assigned To</th>
-                                    <th>Status</th>
+                                    <th>Status *</th>
+                                    <th>Notes</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -293,9 +294,7 @@
             <!-- Tab 6: Settings -->
             <div id="tabSettings" class="tab-content-item d-none">
                 <h2 class="fw-bold text-roving-green mb-4">User & System Settings</h2>
-                
                 <div class="row g-4">
-                    <!-- Password Settings -->
                     <div class="col-md-6">
                         <div class="card card-custom p-4">
                             <h5 class="fw-bold text-roving-green mb-3"><i class="fa-solid fa-key me-2"></i>Change Password</h5>
@@ -317,8 +316,6 @@
                             </form>
                         </div>
                     </div>
-
-                    <!-- Transfer & System Preferences -->
                     <div class="col-md-6">
                         <div class="card card-custom p-4">
                             <h5 class="fw-bold text-roving-green mb-3"><i class="fa-solid fa-bell me-2"></i>Notification Preferences</h5>
@@ -337,7 +334,7 @@
                 </div>
             </div>
 
-            <!-- Tab 7: Pending Deletions (Admin Only) -->
+            <!-- Tab 7: Pending Deletions -->
             <div id="tabPendingDeletes" class="tab-content-item d-none">
                 <h2 class="fw-bold text-danger mb-4">Pending Deletion Requests</h2>
                 <div class="card card-custom p-3 border-danger">
@@ -360,28 +357,89 @@
     </div>
 </div>
 
-<!-- Modal: Add Client -->
+<!-- Modal: Add / Edit Client -->
 <div class="modal fade" id="addClientModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title fw-bold text-roving-green">Add New Client</h5></div>
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-roving-green" id="clientModalTitle">Add New Client</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
             <div class="modal-body">
                 <form id="addClientForm">
-                    <div class="mb-2"><label class="form-label">Client Name</label><input type="text" id="clientName" class="form-control" required></div>
-                    <div class="mb-2"><label class="form-label">Phone</label><input type="tel" id="clientPhone" class="form-control" required></div>
-                    <div class="mb-2"><label class="form-label">Service Required</label><input type="text" id="clientService" class="form-control" required></div>
-                    <div class="mb-2">
-                        <label class="form-label">Status</label>
-                        <select id="clientStatusSelect" class="form-select">
-                            <option value="New">New</option>
-                            <option value="Contacted">Contacted</option>
-                            <option value="Interested">Interested</option>
-                            <option value="Closed/Won">Closed/Won</option>
-                            <option value="Lost">Lost</option>
-                        </select>
+                    <input type="hidden" id="editingClientId" value="">
+                    
+                    <div class="row g-3">
+                        <!-- Required Field 1: Name -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Client Name <span class="text-danger">*</span></label>
+                            <input type="text" id="clientName" class="form-control" placeholder="e.g. Mohamed Ali" required>
+                        </div>
+
+                        <!-- Required Field 2: Lead Source -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Lead Source (جهة الوصول) <span class="text-danger">*</span></label>
+                            <select id="clientSource" class="form-select" required>
+                                <option value="" disabled selected>-- Select Source --</option>
+                                <option value="Facebook">Facebook</option>
+                                <option value="Instagram">Instagram</option>
+                                <option value="WhatsApp">WhatsApp</option>
+                                <option value="Recommendation">Recommendation (ترشيح)</option>
+                                <option value="Website">Website</option>
+                                <option value="Direct Call">Direct Call</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+
+                        <!-- Required Field 3: Status -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Status <span class="text-danger">*</span></label>
+                            <select id="clientStatusSelect" class="form-select" required>
+                                <option value="New">New</option>
+                                <option value="Contacted">Contacted</option>
+                                <option value="Interested">Interested</option>
+                                <option value="Closed/Won">Closed/Won</option>
+                                <option value="Lost">Lost</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Assign To</label>
+                            <select id="clientAssignedTo" class="form-select" required></select>
+                        </div>
+
+                        <!-- Contact Details -->
+                        <div class="col-md-6">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" id="clientPhone" class="form-control" placeholder="01xxxxxxxxx">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" id="clientEmail" class="form-control" placeholder="client@email.com">
+                        </div>
+
+                        <!-- Passport Info -->
+                        <div class="col-md-6">
+                            <label class="form-label">Passport Number (رقم الباسبور)</label>
+                            <input type="text" id="clientPassportNum" class="form-control" placeholder="A12345678">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Passport Expiry Date</label>
+                            <input type="date" id="clientPassportExp" class="form-control">
+                        </div>
+
+                        <!-- Notes Field -->
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Client Details & Notes (تفاصيل العميل وتفضيلاته)</label>
+                            <textarea id="clientNotes" class="form-control" rows="3" placeholder="اكتب التفاصيل الخاصة بالعميل، اهتماماته، أو ملاحظات الرحلة..."></textarea>
+                        </div>
                     </div>
-                    <div class="mb-3"><label class="form-label">Assign To</label><select id="clientAssignedTo" class="form-select" required></select></div>
-                    <button type="submit" class="btn btn-primary w-100">Save Client</button>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" id="saveClientBtn">Save Client Data</button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -444,7 +502,6 @@
 <script>
 const API_BASE_URL = "https://roving-crm-backend.onrender.com";
 
-// تحميل أو تهيئة قائمة المستخدمين
 let validUsers = JSON.parse(localStorage.getItem('crm_users')) || [
     { email: "asmaa.ashraf.1312002@gmail.com", pass: "Asmaa@2026", role: "Admin", name: "Asmaa Ashraf" },
     { email: "ahmedashraf88513@gmail.com", pass: "AhmedA#88", role: "Admin", name: "Ahmed Ashraf" },
@@ -455,7 +512,6 @@ let validUsers = JSON.parse(localStorage.getItem('crm_users')) || [
 let currentUser = null;
 let notifications = JSON.parse(localStorage.getItem('crm_notifications')) || [];
 
-// 💾 تحميل البيانات من LocalStorage عند الإقلاع
 let clients = JSON.parse(localStorage.getItem('crm_clients')) || [];
 let followups = JSON.parse(localStorage.getItem('crm_followups')) || [];
 let bookings = JSON.parse(localStorage.getItem('crm_bookings')) || [];
@@ -484,7 +540,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    
     const emailInput = document.getElementById('loginEmail').value.trim().toLowerCase();
     const passwordInput = document.getElementById('loginPassword').value.trim();
     const errorDiv = document.getElementById('loginError');
@@ -540,11 +595,9 @@ async function initApp() {
     }
 
     populateDropdowns();
-    
     await fetchClientsData();
     await fetchFollowupsData();
     await fetchBookingsData();
-
     renderAllViews();
 }
 
@@ -637,23 +690,72 @@ async function fetchBookingsData() {
     renderBookings();
 }
 
+function openAddClientModal() {
+    document.getElementById('clientModalTitle').innerText = "Add New Client";
+    document.getElementById('editingClientId').value = "";
+    document.getElementById('addClientForm').reset();
+    document.getElementById('saveClientBtn').innerText = "Save Client Data";
+}
+
+function openEditClientModal(id) {
+    const client = clients.find(c => c.id === id);
+    if (!client) return;
+
+    document.getElementById('clientModalTitle').innerText = "Edit Client Info";
+    document.getElementById('editingClientId').value = client.id;
+    document.getElementById('clientName').value = client.name || "";
+    document.getElementById('clientSource').value = client.source || "";
+    document.getElementById('clientStatusSelect').value = client.status || "New";
+    document.getElementById('clientAssignedTo').value = client.assignedTo || currentUser.email;
+    document.getElementById('clientPhone').value = client.phone || "";
+    document.getElementById('clientEmail').value = client.email || "";
+    document.getElementById('clientPassportNum').value = client.passportNum || "";
+    document.getElementById('clientPassportExp').value = client.passportExp || "";
+    document.getElementById('clientNotes').value = client.notes || "";
+
+    document.getElementById('saveClientBtn').innerText = "Update Client Data";
+    
+    const modal = new bootstrap.Modal(document.getElementById('addClientModal'));
+    modal.show();
+}
+
 document.getElementById('addClientForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    const newClient = {
-        id: Date.now(),
+    
+    const editingId = document.getElementById('editingClientId').value;
+    
+    const clientData = {
         name: document.getElementById('clientName').value,
-        phone: document.getElementById('clientPhone').value,
-        service: document.getElementById('clientService').value,
+        source: document.getElementById('clientSource').value,
+        status: document.getElementById('clientStatusSelect').value,
         assignedTo: document.getElementById('clientAssignedTo').value,
-        createdBy: currentUser.email,
-        status: document.getElementById('clientStatusSelect').value || "New",
-        deleteRequested: false
+        phone: document.getElementById('clientPhone').value,
+        email: document.getElementById('clientEmail').value,
+        passportNum: document.getElementById('clientPassportNum').value,
+        passportExp: document.getElementById('clientPassportExp').value,
+        notes: document.getElementById('clientNotes').value
     };
 
-    clients.push(newClient);
-    saveLocalData();
-
-    try { await apiFetch('/api/clients', { method: 'POST', body: JSON.stringify(newClient) }); } catch (err) {}
+    if (editingId) {
+        // Edit Existing Client
+        const client = clients.find(c => c.id === parseInt(editingId));
+        if (client) {
+            Object.assign(client, clientData);
+            saveLocalData();
+            try { await apiFetch(`/api/clients/${editingId}`, { method: 'PUT', body: JSON.stringify(client) }); } catch (err) {}
+        }
+    } else {
+        // Add New Client
+        const newClient = {
+            id: Date.now(),
+            ...clientData,
+            createdBy: currentUser.email,
+            deleteRequested: false
+        };
+        clients.push(newClient);
+        saveLocalData();
+        try { await apiFetch('/api/clients', { method: 'POST', body: JSON.stringify(newClient) }); } catch (err) {}
+    }
 
     bootstrap.Modal.getInstance(document.getElementById('addClientModal')).hide();
     document.getElementById('addClientForm').reset();
@@ -703,7 +805,7 @@ document.getElementById('addBookingForm').addEventListener('submit', async funct
     initApp();
 });
 
-// Change Password Handler
+// Change Password
 document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const curPass = document.getElementById('currentPassword').value;
@@ -712,7 +814,6 @@ document.getElementById('changePasswordForm').addEventListener('submit', functio
     const alertDiv = document.getElementById('passwordAlert');
 
     alertDiv.className = "alert py-2";
-
     const userObj = validUsers.find(u => u.email.toLowerCase() === currentUser.email.toLowerCase());
 
     if (userObj.pass !== curPass) {
@@ -758,9 +859,15 @@ function renderClients() {
         tbody.innerHTML += `
             <tr>
                 <td><strong>${c.name}</strong></td>
-                <td>${c.phone}</td>
-                <td>${c.service}</td>
-                <td><small class="text-muted">${c.createdBy}</small></td>
+                <td><span class="badge bg-secondary">${c.source || 'N/A'}</span></td>
+                <td>
+                    <small class="d-block"><i class="fa-solid fa-phone me-1"></i>${c.phone || '-'}</small>
+                    <small class="text-muted"><i class="fa-solid fa-envelope me-1"></i>${c.email || '-'}</small>
+                </td>
+                <td>
+                    <small class="d-block fw-semibold">${c.passportNum ? 'Passport: ' + c.passportNum : '-'}</small>
+                    <small class="text-muted">${c.passportExp ? 'Exp: ' + c.passportExp : ''}</small>
+                </td>
                 <td><span class="badge bg-light text-dark border">${c.assignedTo}</span></td>
                 <td>
                     <select class="form-select form-select-sm" onchange="updateClientStatus(${c.id}, this.value)">
@@ -771,10 +878,12 @@ function renderClients() {
                         <option value="Lost" ${c.status === 'Lost' ? 'selected' : ''}>Lost</option>
                     </select>
                 </td>
+                <td><small class="text-muted text-truncate d-inline-block" style="max-width: 150px;" title="${c.notes || ''}">${c.notes || '-'}</small></td>
                 <td>
                     ${c.deleteRequested ? '<span class="badge bg-warning text-dark">Deletion Pending</span>' : `
-                        <button class="btn btn-sm btn-outline-warning" onclick="openTransferModal(${c.id})"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="requestDelete(${c.id})"><i class="fa-solid fa-trash"></i></button>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditClientModal(${c.id})" title="Edit Client"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="btn btn-sm btn-outline-warning me-1" onclick="openTransferModal(${c.id})" title="Transfer Owner"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="requestDelete(${c.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
                     `}
                 </td>
             </tr>
@@ -885,7 +994,6 @@ function renderNotifications() {
     const notifBadge = document.getElementById('notifBadge');
     if (!notifList) return;
     
-    // فلترة الإشعارات التابعة لليوزر الحالي
     const userNotifs = notifications.filter(n => n.targetUser === currentUser.email || !n.targetUser);
     
     notifList.innerHTML = '';
@@ -936,10 +1044,8 @@ async function confirmTransfer() {
 
     const client = clients.find(c => c.id === id);
     if (client) {
-        const oldOwner = client.assignedTo;
         client.assignedTo = newAgent;
         
-        // إضافة إشعار ينزل في الحساب الخاص بـ Agent المستلم مباشرة
         notifications.push({
             targetUser: newAgent,
             text: `📢 Client transferred to you: <strong>${client.name}</strong> (Transferred by ${currentUser.email})`
