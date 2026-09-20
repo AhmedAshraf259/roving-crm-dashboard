@@ -89,11 +89,6 @@
             box-shadow: 0 10px 30px rgba(32, 58, 43, 0.15); 
             background: #ffffff;
         }
-
-        .table-custom-header {
-            background-color: var(--roving-green) !important;
-            color: #ffffff !important;
-        }
     </style>
 </head>
 <body>
@@ -368,134 +363,85 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// Backend Service Base URL
 const API_BASE_URL = "https://roving-crm-backend.onrender.com";
 
-// Authorized Admin Accounts
-const adminEmails = [
-    "asmaa.ashraf.1312002@gmail.com", 
-    "ahmedashraf88513@gmail.com",
-    "ahmedwanas11@gmail.com"
-];
-
-// Employee Directory
-const allEmployees = [
-    { email: "asmaa.ashraf.1312002@gmail.com", name: "Asmaa Ashraf (Admin)" },
-    { email: "ahmedashraf88513@gmail.com", name: "Ahmed Ashraf (Admin)" },
-    { email: "ahmedwanas11@gmail.com", name: "Ahmed Wanas (Admin)" },
-    { email: "sales1@roving.com", name: "Sales Agent 1" }
+// 🔐 قائمة الحسابات المصرح لها بالدخول
+const validUsers = [
+    { email: "asmaa.ashraf.1312002@gmail.com", pass: "123456", role: "Admin", name: "Asmaa Ashraf" },
+    { email: "ahmedashraf88513@gmail.com", pass: "123456", role: "Admin", name: "Ahmed Ashraf" },
+    { email: "ahmedwanas11@gmail.com", pass: "123456", role: "Admin", name: "Ahmed Wanas" },
+    { email: "sales1@roving.com", pass: "123456", role: "Sales", name: "Sales Agent 1" }
 ];
 
 let currentUser = null;
 let notifications = [];
-let clients = [
-    { id: 1, name: "Mohamed Ali", phone: "01000000001", service: "Dubai Trip", createdBy: "sales1@roving.com", assignedTo: "sales1@roving.com", status: "New", deleteRequested: false },
-    { id: 2, name: "Omar Khaled", phone: "01000000002", service: "Europe Visa", createdBy: "asmaa.ashraf.1312002@gmail.com", assignedTo: "ahmedashraf88513@gmail.com", status: "In Follow-up", deleteRequested: false }
-];
+let clients = [];
+let followups = [];
+let bookings = [];
 
-let followups = [
-    { clientId: 1, clientName: "Mohamed Ali", date: "2026-09-25", note: "Call to confirm flight dates", assignedTo: "sales1@roving.com", status: "Pending" }
-];
-
-// Demo Bookings
-let bookings = [
-    { id: 101, clientName: "Mohamed Ali", details: "Dubai 5 Stars Hotel", amount: 30000, profit: 5000, tripEndDate: "2026-09-10", assignedTo: "sales1@roving.com" },
-    { id: 102, clientName: "Omar Khaled", details: "Europe Tour", amount: 60000, profit: 10000, tripEndDate: "2026-10-15", assignedTo: "ahmedashraf88513@gmail.com" }
-];
-
-// Authenticated Login via Render Backend
-document.getElementById('loginForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-    const password = document.getElementById('loginPassword').value;
-    const errorDiv = document.getElementById('loginError');
-    const submitBtn = document.getElementById('loginSubmitBtn');
-
-    errorDiv.classList.add('d-none');
-    submitBtn.innerText = "Signing In...";
-    submitBtn.disabled = true;
-
-    // تجهيز البيانات بالصيغتين (JSON و Form Data)
-    const formData = new URLSearchParams();
-    formData.append('username', email);
-    formData.append('password', password);
-
-    // قائمة المسارات المحتملة للباك إند
-    const endpoints = [
-        `${API_BASE_URL}/auth/login`,
-        `${API_BASE_URL}/login`,
-        `${API_BASE_URL}/api/auth/login`
-    ];
-
-    let loggedIn = false;
-
-    for (let url of endpoints) {
+// فحص الجلسة عند فتح الصفحة
+window.addEventListener('DOMContentLoaded', () => {
+    const savedUser = localStorage.getItem('crm_user');
+    if (savedUser) {
         try {
-            // محاولة 1: إرسال JSON
-            let response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email, username: email, password: password })
-            });
-
-            // محاولة 2: إذا فشل بسبب نوع البيانات، جرب Form Data
-            if (response.status === 422 || response.status === 400) {
-                response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: formData
-                });
-            }
-
-            if (response.ok) {
-                const data = await response.json();
-                localStorage.setItem('crm_token', data.access_token || data.token || 'auth_token');
-                
-                const userRole = data.user?.role || (adminEmails.map(a => a.toLowerCase()).includes(email) ? 'Admin' : 'Sales');
-                
-                currentUser = { email: email, role: userRole };
-
-                document.getElementById('loginSection').classList.add('d-none');
-                document.getElementById('appSection').classList.remove('d-none');
-                initApp();
-                loggedIn = true;
-                break;
-            }
-        } catch (err) {
-            console.log(`Failed connecting to ${url}`);
-        }
-    }
-
-    if (!loggedIn) {
-        // Fallback authorization check
-        const foundUser = allEmployees.find(emp => emp.email.toLowerCase() === email);
-        if (foundUser && password.length >= 4) {
-            currentUser = { 
-                email: foundUser.email, 
-                role: adminEmails.map(a => a.toLowerCase()).includes(foundUser.email) ? 'Admin' : 'Sales' 
-            };
+            currentUser = JSON.parse(savedUser);
             document.getElementById('loginSection').classList.add('d-none');
             document.getElementById('appSection').classList.remove('d-none');
             initApp();
-        } else {
-            errorDiv.innerText = "Authentication failed. Check your credentials.";
-            errorDiv.classList.remove('d-none');
+        } catch (e) {
+            localStorage.removeItem('crm_user');
         }
     }
+});
 
-    submitBtn.innerText = "Sign In";
-    submitBtn.disabled = false;
+// 🛑 منع التسجيل إلا ببيانات مطابقة تماماً
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const emailInput = document.getElementById('loginEmail').value.trim().toLowerCase();
+    const passwordInput = document.getElementById('loginPassword').value.trim();
+    const errorDiv = document.getElementById('loginError');
+
+    errorDiv.classList.add('d-none');
+    errorDiv.innerText = "";
+
+    // مطابقة البيانات محلياً
+    const matchedUser = validUsers.find(u => u.email.toLowerCase() === emailInput && u.pass === passwordInput);
+
+    if (matchedUser) {
+        currentUser = { email: matchedUser.email, role: matchedUser.role, name: matchedUser.name };
+        localStorage.setItem('crm_user', JSON.stringify(currentUser));
+
+        document.getElementById('loginSection').classList.add('d-none');
+        document.getElementById('appSection').classList.remove('d-none');
+        
+        initApp();
+    } else {
+        // إظهار رسالة خطأ ومنع الدخول نهائياً
+        errorDiv.innerText = "البريد الإلكتروني أو كلمة السر غير صحيحة!";
+        errorDiv.classList.remove('d-none');
+    }
 });
 
 function handleLogout() {
     currentUser = null;
-    localStorage.removeItem('crm_token');
+    localStorage.removeItem('crm_user');
     document.getElementById('loginSection').classList.remove('d-none');
     document.getElementById('appSection').classList.add('d-none');
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
 }
 
-function initApp() {
+async function apiFetch(endpoint, options = {}) {
+    const headers = { 'Content-Type': 'application/json', ...options.headers };
+    try {
+        return await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+    } catch (err) {
+        return { ok: false };
+    }
+}
+
+async function initApp() {
     document.getElementById('userDisplayName').innerText = currentUser.email;
     document.getElementById('userRoleBadge').innerText = currentUser.role;
     
@@ -508,9 +454,9 @@ function initApp() {
     }
 
     populateDropdowns();
-    renderClients();
-    renderFollowups();
-    renderBookings();
+    await fetchClientsData();
+    await fetchFollowupsData();
+    await fetchBookingsData();
     renderCommissions();
     renderReports();
     renderNotifications();
@@ -533,21 +479,103 @@ function populateDropdowns() {
     const transferSelect = document.getElementById('transferSelectUser');
     const bookingClientSelect = document.getElementById('bookingClientSelect');
     
-    addSelect.innerHTML = ''; transferSelect.innerHTML = ''; bookingClientSelect.innerHTML = '';
+    if (addSelect) addSelect.innerHTML = ''; 
+    if (transferSelect) transferSelect.innerHTML = ''; 
+    if (bookingClientSelect) bookingClientSelect.innerHTML = '';
 
-    allEmployees.forEach(emp => {
-        addSelect.innerHTML += `<option value="${emp.email}">${emp.name}</option>`;
-        if (emp.email.toLowerCase() !== currentUser.email) transferSelect.innerHTML += `<option value="${emp.email}">${emp.name}</option>`;
+    validUsers.forEach(emp => {
+        if (addSelect) addSelect.innerHTML += `<option value="${emp.email}">${emp.name}</option>`;
+        if (transferSelect && emp.email.toLowerCase() !== currentUser.email.toLowerCase()) {
+            transferSelect.innerHTML += `<option value="${emp.email}">${emp.name}</option>`;
+        }
     });
 
     let filteredClients = currentUser.role === 'Sales' ? clients.filter(c => c.assignedTo === currentUser.email) : clients;
     filteredClients.forEach(c => {
-        bookingClientSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+        if (bookingClientSelect) bookingClientSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
     });
 }
 
+async function fetchClientsData() {
+    try {
+        const res = await apiFetch('/api/clients');
+        if (res.ok) clients = await res.json();
+    } catch (e) {}
+    renderClients();
+}
+
+async function fetchFollowupsData() {
+    try {
+        const res = await apiFetch('/api/followups');
+        if (res.ok) followups = await res.json();
+    } catch (e) {}
+    renderFollowups();
+}
+
+async function fetchBookingsData() {
+    try {
+        const res = await apiFetch('/api/bookings');
+        if (res.ok) bookings = await res.json();
+    } catch (e) {}
+    renderBookings();
+}
+
+document.getElementById('addClientForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const newClient = {
+        name: document.getElementById('clientName').value,
+        phone: document.getElementById('clientPhone').value,
+        service: document.getElementById('clientService').value,
+        assignedTo: document.getElementById('clientAssignedTo').value,
+        createdBy: currentUser.email,
+        status: "New",
+        deleteRequested: false
+    };
+
+    try {
+        const res = await apiFetch('/api/clients', { method: 'POST', body: JSON.stringify(newClient) });
+        if (res.ok) {
+            const data = await res.json();
+            clients.push(data);
+        } else { clients.push({ ...newClient, id: Date.now() }); }
+    } catch (err) {
+        clients.push({ ...newClient, id: Date.now() });
+    }
+
+    bootstrap.Modal.getInstance(document.getElementById('addClientModal')).hide();
+    document.getElementById('addClientForm').reset();
+    initApp();
+});
+
+document.getElementById('addBookingForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const newBooking = {
+        clientName: document.getElementById('bookingClientSelect').value,
+        details: document.getElementById('bookingDetails').value,
+        amount: parseFloat(document.getElementById('bookingAmount').value),
+        profit: parseFloat(document.getElementById('bookingProfit').value),
+        tripEndDate: document.getElementById('bookingEndDate').value,
+        assignedTo: currentUser.email
+    };
+
+    try {
+        const res = await apiFetch('/api/bookings', { method: 'POST', body: JSON.stringify(newBooking) });
+        if (res.ok) {
+            const data = await res.json();
+            bookings.push(data);
+        } else { bookings.push({ ...newBooking, id: Date.now() }); }
+    } catch (err) {
+        bookings.push({ ...newBooking, id: Date.now() });
+    }
+
+    bootstrap.Modal.getInstance(document.getElementById('addBookingModal')).hide();
+    document.getElementById('addBookingForm').reset();
+    initApp();
+});
+
 function renderClients() {
     const tbody = document.getElementById('clientsTableBody');
+    if (!tbody) return;
     tbody.innerHTML = '';
     let list = currentUser.role === 'Sales' ? clients.filter(c => c.createdBy === currentUser.email || c.assignedTo === currentUser.email) : clients;
 
@@ -573,6 +601,7 @@ function renderClients() {
 
 function renderFollowups() {
     const tbody = document.getElementById('followupsTableBody');
+    if (!tbody) return;
     tbody.innerHTML = '';
     let list = currentUser.role === 'Sales' ? followups.filter(f => f.assignedTo === currentUser.email) : followups;
 
@@ -591,6 +620,7 @@ function renderFollowups() {
 
 function renderBookings() {
     const tbody = document.getElementById('bookingsTableBody');
+    if (!tbody) return;
     tbody.innerHTML = '';
     let list = currentUser.role === 'Sales' ? bookings.filter(b => b.assignedTo === currentUser.email) : bookings;
 
@@ -599,8 +629,8 @@ function renderBookings() {
             <tr>
                 <td><strong>${b.clientName}</strong></td>
                 <td>${b.details}</td>
-                <td>EGP ${b.amount.toLocaleString()}</td>
-                <td>EGP ${b.profit.toLocaleString()}</td>
+                <td>EGP ${b.amount ? b.amount.toLocaleString() : 0}</td>
+                <td>EGP ${b.profit ? b.profit.toLocaleString() : 0}</td>
                 <td><span class="badge bg-secondary">${b.tripEndDate}</span></td>
                 <td>${b.assignedTo}</td>
             </tr>
@@ -610,6 +640,7 @@ function renderBookings() {
 
 function renderCommissions() {
     const tbody = document.getElementById('commissionsTableBody');
+    if (!tbody) return;
     tbody.innerHTML = '';
     let list = currentUser.role === 'Sales' ? bookings.filter(b => b.assignedTo === currentUser.email) : bookings;
 
@@ -618,13 +649,11 @@ function renderCommissions() {
     const today = new Date().toISOString().split('T')[0];
 
     list.forEach(b => {
-        totalProfit += b.profit;
-        const commValue = b.profit * 0.10; 
+        totalProfit += (b.profit || 0);
+        const commValue = (b.profit || 0) * 0.10; 
         const isCompleted = b.tripEndDate <= today;
 
-        if (isCompleted) {
-            releasedCommissions += commValue;
-        }
+        if (isCompleted) releasedCommissions += commValue;
 
         tbody.innerHTML += `
             <tr>
@@ -656,99 +685,106 @@ function renderReports() {
 
 function renderNotifications() {
     const notifList = document.getElementById('notifList');
-    const myNotifs = notifications.filter(n => n.targetEmail === currentUser.email);
-    document.getElementById('notifBadge').innerText = myNotifs.length;
-    notifList.innerHTML = myNotifs.length === 0 ? '<small class="text-muted d-block p-2">No notifications</small>' : '';
-    myNotifs.forEach(n => {
-        notifList.innerHTML += `<div class="notif-item"><div>${n.text}</div></div>`;
+    const notifBadge = document.getElementById('notifBadge');
+    if (!notifList) return;
+    
+    notifList.innerHTML = '';
+    notifBadge.innerText = notifications.length;
+
+    if (notifications.length === 0) {
+        notifList.innerHTML = '<small class="text-muted">No notifications</small>';
+        return;
+    }
+
+    notifications.forEach(n => {
+        notifList.innerHTML += `<div class="notif-item">${n}</div>`;
     });
-}
-
-function openTransferModal(id) {
-    document.getElementById('transferClientId').value = id;
-    new bootstrap.Modal(document.getElementById('transferModal')).show();
-}
-
-function confirmTransfer() {
-    const id = parseInt(document.getElementById('transferClientId').value);
-    const target = document.getElementById('transferSelectUser').value;
-    const client = clients.find(c => c.id === id);
-    if (client) {
-        client.assignedTo = target;
-        notifications.push({ targetEmail: target, text: `Client (${client.name}) transferred to you.` });
-        bootstrap.Modal.getInstance(document.getElementById('transferModal')).hide();
-        initApp();
-    }
-}
-
-function requestDelete(id) {
-    const client = clients.find(c => c.id === id);
-    if (!client) return;
-
-    if (currentUser.role === 'Admin') {
-        if (confirm('Permanently delete this record?')) { clients = clients.filter(c => c.id !== id); initApp(); }
-    } else {
-        if (confirm('Send deletion request to Admin?')) {
-            client.deleteRequested = true;
-            adminEmails.forEach(a => notifications.push({ targetEmail: a, text: `Delete request for client (${client.name})` }));
-            initApp();
-        }
-    }
 }
 
 function renderPendingDeletes() {
     const tbody = document.getElementById('pendingDeleteTableBody');
+    const badge = document.getElementById('pendingBadge');
+    if (!tbody) return;
+
     tbody.innerHTML = '';
-    const pending = clients.filter(c => c.deleteRequested);
-    pending.forEach(c => {
+    const pendingList = clients.filter(c => c.deleteRequested);
+    badge.innerText = pendingList.length;
+
+    pendingList.forEach(c => {
         tbody.innerHTML += `
             <tr>
-                <td>${c.name}</td>
+                <td><strong>${c.name}</strong></td>
                 <td>${c.createdBy}</td>
                 <td>
-                    <button class="btn btn-sm btn-success me-1" onclick="approveDelete(${c.id})">Approve</button>
-                    <button class="btn btn-sm btn-secondary" onclick="rejectDelete(${c.id})">Reject</button>
+                    <button class="btn btn-sm btn-danger" onclick="approveDelete(${c.id})"><i class="fa-solid fa-check"></i> Approve</button>
+                    <button class="btn btn-sm btn-secondary" onclick="rejectDelete(${c.id})"><i class="fa-solid fa-xmark"></i> Reject</button>
                 </td>
             </tr>
         `;
     });
 }
 
-function approveDelete(id) { clients = clients.filter(c => c.id !== id); initApp(); renderPendingDeletes(); }
-function rejectDelete(id) { const c = clients.find(x => x.id === id); if (c) c.deleteRequested = false; initApp(); renderPendingDeletes(); }
+function openTransferModal(id) {
+    document.getElementById('transferClientId').value = id;
+    const modal = new bootstrap.Modal(document.getElementById('transferModal'));
+    modal.show();
+}
 
-document.getElementById('addClientForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    clients.push({
-        id: Date.now(),
-        name: document.getElementById('clientName').value,
-        phone: document.getElementById('clientPhone').value,
-        service: document.getElementById('clientService').value,
-        createdBy: currentUser.email,
-        assignedTo: document.getElementById('clientAssignedTo').value,
-        status: "New",
-        deleteRequested: false
-    });
-    bootstrap.Modal.getInstance(document.getElementById('addClientModal')).hide();
-    this.reset();
-    initApp();
-});
+async function confirmTransfer() {
+    const id = parseInt(document.getElementById('transferClientId').value);
+    const newAgent = document.getElementById('transferSelectUser').value;
 
-document.getElementById('addBookingForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    bookings.push({
-        id: Date.now(),
-        clientName: document.getElementById('bookingClientSelect').value,
-        details: document.getElementById('bookingDetails').value,
-        amount: parseFloat(document.getElementById('bookingAmount').value),
-        profit: parseFloat(document.getElementById('bookingProfit').value),
-        tripEndDate: document.getElementById('bookingEndDate').value,
-        assignedTo: currentUser.email
-    });
-    bootstrap.Modal.getInstance(document.getElementById('addBookingModal')).hide();
-    this.reset();
+    const client = clients.find(c => c.id === id);
+    if (client) {
+        client.assignedTo = newAgent;
+        try {
+            await apiFetch(`/api/clients/${id}`, { method: 'PUT', body: JSON.stringify(client) });
+        } catch (e) {}
+    }
+
+    bootstrap.Modal.getInstance(document.getElementById('transferModal')).hide();
     initApp();
-});
+}
+
+async function requestDelete(id) {
+    const client = clients.find(c => c.id === id);
+    if (!client) return;
+
+    if (currentUser.role === 'Admin') {
+        if (confirm("Are you sure you want to permanently delete this client?")) {
+            clients = clients.filter(c => c.id !== id);
+            try { await apiFetch(`/api/clients/${id}`, { method: 'DELETE' }); } catch (e) {}
+        }
+    } else {
+        client.deleteRequested = true;
+        notifications.push(`Deletion requested for client: ${client.name}`);
+        try {
+            await apiFetch(`/api/clients/${id}`, { method: 'PUT', body: JSON.stringify(client) });
+        } catch (e) {}
+        alert("Deletion request sent to administrator for approval.");
+    }
+    initApp();
+}
+
+async function approveDelete(id) {
+    clients = clients.filter(c => c.id !== id);
+    try { await apiFetch(`/api/clients/${id}`, { method: 'DELETE' }); } catch (e) {}
+    renderPendingDeletes();
+    initApp();
+}
+
+async function rejectDelete(id) {
+    const client = clients.find(c => c.id === id);
+    if (client) {
+        client.deleteRequested = false;
+        try {
+            await apiFetch(`/api/clients/${id}`, { method: 'PUT', body: JSON.stringify(client) });
+        } catch (e) {}
+    }
+    renderPendingDeletes();
+    initApp();
+}
 </script>
+
 </body>
 </html>
