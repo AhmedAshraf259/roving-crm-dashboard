@@ -897,7 +897,6 @@ async function initApp() {
     renderAllViews();
 }
 
-// دالة إنشاء إشعار لعميل اليوم فقط ومطابقة الشروط
 function addNotification(targetUserEmail, textMsg, isEmailDispatch = false) {
     const now = new Date();
     const dateStr = now.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' }) + ' - ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -913,7 +912,6 @@ function addNotification(targetUserEmail, textMsg, isEmailDispatch = false) {
     renderNotifications();
 }
 
-// التحقق من فولو أب اليوم بدقة (اعتماداً على تاريخ اليوم بالكامل دون قيود وقتية دقيقة)
 function checkTodayFollowups() {
     const now = new Date();
     const year = now.getFullYear();
@@ -926,7 +924,6 @@ function checkTodayFollowups() {
         return f.date.trim() === today && f.status === 'Pending' && (f.assignedTo === currentUser.email || currentUser.role === 'Admin');
     });
 
-    // تحديث عداد الفولو أب اليوم بجانب زر الفولو أب في القائمة الجانبية
     const sidebarBadge = document.getElementById('sidebarTodayFollowupBadge');
     if (sidebarBadge) {
         sidebarBadge.innerText = todayTasks.length;
@@ -1246,7 +1243,6 @@ document.getElementById('completeFollowupForm').addEventListener('submit', funct
     initApp();
 });
 
-// --- ADMIN USER MANAGEMENT LOGIC ---
 function renderAdminUsersTable() {
     const tbody = document.getElementById('adminUsersTableBody');
     if (!tbody) return;
@@ -1301,7 +1297,6 @@ function deleteUserSystem(email) {
     }
 }
 
-// --- BOOKINGS LOGIC ---
 function openAddBookingModal() {
     document.getElementById('bookingModalTitle').innerText = "Create Trip Booking";
     document.getElementById('editingBookingId').value = "";
@@ -1481,7 +1476,6 @@ function rejectBookingRequest(reqId) {
     initApp();
 }
 
-// --- REPORTS & ANALYTICS CHARTS ---
 function renderReports() {
     const periodType = document.getElementById('reportPeriodType').value;
     const dateInputVal = document.getElementById('reportDateVal').value;
@@ -1624,7 +1618,6 @@ function renderLeadStatusChart(clientsList) {
     });
 }
 
-// --- ADMIN COMMISSION CONFIGURATION ---
 function renderAdminCommissionSettings() {
     const container = document.getElementById('adminCommissionListContainer');
     if (!container) return;
@@ -1864,7 +1857,6 @@ function renderCommissions() {
     document.getElementById('totalCommissionAmount').innerText = "EGP " + releasedCommissions.toLocaleString();
 }
 
-// دالة عرض وتحديث الإشعارات مع ميزة الانتقال المباشر لجدول الفولو أب عند الضغط عليها
 function renderNotifications() {
     const notifList = document.getElementById('notifList');
     const notifBadge = document.getElementById('notifBadge');
@@ -1899,7 +1891,6 @@ function renderNotifications() {
     });
 }
 
-// عند النقر على الإشعار يتم تعيينه كمقروء والانتقال التلقائي إلى تبويب الفولو أب (Follow-ups)
 function handleNotificationClick(notifId) {
     const notif = notifications.find(n => n.id === notifId);
     if (notif) {
