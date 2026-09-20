@@ -356,6 +356,31 @@
                     </div>
                 </div>
 
+                <!-- Advanced Client & Productivity Insights Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="card card-custom p-3 border-start border-4 border-info">
+                            <h6 class="text-muted">معدل تحويل العملاء (Conversion Rate)</h6>
+                            <h3 id="reportConversionRate" class="fw-bold text-info">0%</h3>
+                            <small class="text-muted">نسبة الحجوزات إلى إجمالي العملاء</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card card-custom p-3 border-start border-4 border-secondary">
+                            <h6 class="text-muted">متابعات متأخرة تحتاج لتدخل (Overdue)</h6>
+                            <h3 id="reportOverdueFollowups" class="fw-bold text-danger">0</h3>
+                            <small class="text-muted">مهام متابعة فائتة الموعد</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card card-custom p-3 border-start border-4 border-dark">
+                            <h6 class="text-muted">عملاء غير نشطين / مفقودين (Lost/Inactive)</h6>
+                            <h3 id="reportInactiveLeads" class="fw-bold text-secondary">0</h3>
+                            <small class="text-muted">حالات لم تكتمل أو توقفت</small>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Charts Section -->
                 <div class="row g-4">
                     <div class="col-md-8">
@@ -543,13 +568,14 @@
     </div>
 </div>
 
-<!-- Modal: Add Follow-up -->
+<!-- Modal: Add / Edit Follow-up -->
 <div class="modal fade" id="addFollowupModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title fw-bold text-roving-green">Add Follow-up Task</h5></div>
+            <div class="modal-header"><h5 class="modal-title fw-bold text-roving-green" id="followupModalTitle">Add Follow-up Task</h5></div>
             <div class="modal-body">
                 <form id="addFollowupForm">
+                    <input type="hidden" id="editingFollowupId" value="">
                     <div class="mb-3">
                         <label class="form-label fw-semibold">اختر العميل (ابحث بالاسم أو رقم الملف)</label>
                         <input type="text" id="followupClientSearchInput" class="form-control mb-1" placeholder="اكتب للبحث السريع (اسم أو رقم الملف)..." oninput="filterFollowupClientsList()">
@@ -557,7 +583,7 @@
                     </div>
                     <div class="mb-2"><label class="form-label">Follow-up Date</label><input type="date" id="followupDate" class="form-control" required></div>
                     <div class="mb-3"><label class="form-label">Notes / Instructions</label><textarea id="followupNotes" class="form-control" rows="3" required></textarea></div>
-                    <button type="submit" class="btn btn-primary w-100">Schedule Follow-up</button>
+                    <button type="submit" class="btn btn-primary w-100" id="saveFollowupBtn">Schedule Follow-up</button>
                 </form>
             </div>
         </div>
@@ -834,7 +860,7 @@ function populateDropdowns() {
 function populateReportUserDropdown() {
     const select = document.getElementById('reportUserSelect');
     if (!select) return;
-    select.innerHTML = `<option value="ALL">-- جميع الموظفين (All Team Team Report) --</option>`;
+    select.innerHTML = `<option value="ALL">-- جميع الموظفين (All Team Report) --</option>`;
     validUsers.forEach(u => {
         select.innerHTML += `<option value="${u.email}">${u.name} (${u.email})</option>`;
     });
@@ -872,9 +898,29 @@ function filterFollowupClientsList() {
 }
 
 function openAddFollowupModal() {
+    document.getElementById('followupModalTitle').innerText = "Add Follow-up Task";
+    document.getElementById('editingFollowupId').value = "";
     document.getElementById('addFollowupForm').reset();
     document.getElementById('followupClientSearchInput').value = '';
+    document.getElementById('saveFollowupBtn').innerText = "Schedule Follow-up";
     populateFollowupClientsDropdown();
+}
+
+function openEditFollowupModal(id) {
+    const followup = followups.find(f => f.id === id);
+    if (!followup) return;
+
+    document.getElementById('followupModalTitle').innerText = "Edit Follow-up Task";
+    document.getElementById('editingFollowupId').value = followup.id;
+    document.getElementById('followupClientSearchInput').value = followup.clientName;
+    populateFollowupClientsDropdown(followup.clientName);
+    document.getElementById('followupClientSelect').value = followup.clientName;
+    document.getElementById('followupDate').value = followup.date || "";
+    document.getElementById('followupNotes').value = followup.note || "";
+    document.getElementById('saveFollowupBtn').innerText = "Update Follow-up";
+
+    const modal = new bootstrap.Modal(document.getElementById('addFollowupModal'));
+    modal.show();
 }
 
 function openAddClientModal() {
@@ -959,6 +1005,7 @@ document.getElementById('addClientForm').addEventListener('submit', function(e) 
 
 document.getElementById('addFollowupForm').addEventListener('submit', function(e) {
     e.preventDefault();
+    const editingId = document.getElementById('editingFollowupId').value;
     const clientName = document.getElementById('followupClientSelect').value;
     if (!clientName) {
         alert("يرجى اختيار العميل أولاً من القائمة.");
@@ -966,8 +1013,8 @@ document.getElementById('addFollowupForm').addEventListener('submit', function(e
     }
     const clientObj = clients.find(c => c.name === clientName);
     
-    const newFollowup = {
-        id: Date.now(),
+    const followupPayload = {
+        id: editingId ? parseInt(editingId) : Date.now(),
         fileNo: clientObj ? clientObj.fileNo : 'N/A',
         clientName: clientName,
         date: document.getElementById('followupDate').value,
@@ -976,13 +1023,31 @@ document.getElementById('addFollowupForm').addEventListener('submit', function(e
         status: "Pending"
     };
 
-    followups.push(newFollowup);
-    saveLocalData();
+    if (editingId) {
+        const existing = followups.find(f => f.id === parseInt(editingId));
+        if (existing) {
+            existing.fileNo = followupPayload.fileNo;
+            existing.clientName = followupPayload.clientName;
+            existing.date = followupPayload.date;
+            existing.note = followupPayload.note;
+        }
+    } else {
+        followups.push(followupPayload);
+    }
 
+    saveLocalData();
     bootstrap.Modal.getInstance(document.getElementById('addFollowupModal')).hide();
     document.getElementById('addFollowupForm').reset();
     initApp();
 });
+
+function deleteFollowup(id) {
+    if (confirm("هل أنت متأكد من حذف هذه المتابعة نهائياً؟")) {
+        followups = followups.filter(f => f.id !== id);
+        saveLocalData();
+        initApp();
+    }
+}
 
 function openCompleteFollowupModal(id) {
     document.getElementById('completingFollowupId').value = id;
@@ -1226,10 +1291,8 @@ function rejectBookingRequest(reqId) {
 function renderReports() {
     const periodType = document.getElementById('reportPeriodType').value;
     const dateInputVal = document.getElementById('reportDateVal').value;
-    const dateContainer = document.getElementById('dateInputContainer');
     const dateLabel = document.getElementById('dateLabel');
 
-    // Adjust date input type based on period
     if (periodType === 'monthly') {
         dateLabel.innerText = "اختر الشهر";
         if (!dateInputVal || document.getElementById('reportDateVal').type !== 'month') {
@@ -1254,18 +1317,16 @@ function renderReports() {
         document.getElementById('reportDateVal').value = "جميع الفترات";
     }
 
-    // Determine target user filter
     let selectedAgent = currentUser.email;
     if (currentUser.role === 'Admin') {
         const userSelect = document.getElementById('reportUserSelect');
         if (userSelect) selectedAgent = userSelect.value;
     }
 
-    // Filter datasets
     let filteredClients = selectedAgent === 'ALL' ? clients : clients.filter(c => (c.assignedTo || c.createdBy) === selectedAgent);
     let filteredBookings = selectedAgent === 'ALL' ? bookings : bookings.filter(b => b.assignedTo === selectedAgent);
+    let filteredFollowups = selectedAgent === 'ALL' ? followups : followups.filter(f => f.assignedTo === selectedAgent);
 
-    // Apply date range filter
     const activeDateVal = document.getElementById('reportDateVal').value;
     if (periodType === 'monthly' && activeDateVal) {
         filteredClients = filteredClients.filter(c => c.createdAt && c.createdAt.startsWith(activeDateVal));
@@ -1278,7 +1339,7 @@ function renderReports() {
         filteredBookings = filteredBookings.filter(b => b.createdAt && b.createdAt.startsWith(activeDateVal));
     }
 
-    // Calculate KPIs
+    // Basic KPIs
     let totalClientsCount = filteredClients.length;
     let totalBookingsCount = filteredBookings.length;
     let totalSellingAmount = filteredBookings.reduce((sum, b) => sum + (b.amount || 0), 0);
@@ -1289,6 +1350,17 @@ function renderReports() {
     document.getElementById('reportTotalSelling').innerText = "EGP " + totalSellingAmount.toLocaleString();
     document.getElementById('reportTotalProfit').innerText = "EGP " + totalProfitAmount.toLocaleString();
 
+    // Advanced Productivity & Problem Solving Analytics
+    const conversionRate = totalClientsCount > 0 ? ((totalBookingsCount / totalClientsCount) * 100).toFixed(1) : 0;
+    document.getElementById('reportConversionRate').innerText = conversionRate + "%";
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const overdueCount = filteredFollowups.filter(f => f.status === 'Pending' && f.date < todayStr).length;
+    document.getElementById('reportOverdueFollowups').innerText = overdueCount;
+
+    const inactiveCount = filteredClients.filter(c => c.status === 'Lost' || c.status === 'New').length;
+    document.getElementById('reportInactiveLeads').innerText = inactiveCount;
+
     // Render Charts
     renderPerformanceChart(filteredBookings, periodType);
     renderLeadStatusChart(filteredClients);
@@ -1297,12 +1369,10 @@ function renderReports() {
 function renderPerformanceChart(bookingsList, periodType) {
     const ctx = document.getElementById('performanceChart').getContext('2d');
     
-    // Group by date or interval
     let labels = [];
     let profitData = [];
     let sellingData = [];
 
-    // Simple grouping logic for visualization
     const grouped = {};
     bookingsList.forEach(b => {
         let key = b.createdAt || "Unknown";
@@ -1521,6 +1591,14 @@ function renderFollowups() {
         if (f.status === 'No Answer') badgeClass = 'bg-secondary';
         if (f.status === 'Reschedule') badgeClass = 'bg-info text-dark';
 
+        let adminActions = '';
+        if (currentUser.role === 'Admin') {
+            adminActions = `
+                <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditFollowupModal(${f.id})" title="تعديل المتابعة"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn btn-sm btn-outline-danger me-1" onclick="deleteFollowup(${f.id})" title="حذف المتابعة"><i class="fa-solid fa-trash"></i></button>
+            `;
+        }
+
         tbody.innerHTML += `
             <tr>
                 <td><span class="badge bg-dark">${f.fileNo || 'N/A'}</span></td>
@@ -1530,7 +1608,8 @@ function renderFollowups() {
                 <td>${f.assignedTo}</td>
                 <td><span class="badge ${badgeClass}">${f.status}</span></td>
                 <td>
-                    ${f.status === 'Pending' ? `<button class="btn btn-sm btn-primary" onclick="openCompleteFollowupModal(${f.id})"><i class="fa-solid fa-tasks me-1"></i> Take Action</button>` : '<small class="text-muted">Completed</small>'}
+                    ${f.status === 'Pending' ? `<button class="btn btn-sm btn-primary me-1" onclick="openCompleteFollowupModal(${f.id})"><i class="fa-solid fa-tasks me-1"></i> Take Action</button>` : '<small class="text-muted me-1">Completed</small>'}
+                    ${adminActions}
                 </td>
             </tr>
         `;
