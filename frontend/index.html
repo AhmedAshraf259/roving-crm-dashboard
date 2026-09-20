@@ -179,7 +179,7 @@
                     <span id="sidebarTodayFollowupBadge" class="badge bg-danger rounded-pill">0</span>
                 </a>
 
-                <a href="#" id="navBookings" onclick="switchTab('bookings')"><i class="fa-solid fa-receipt me-2"></i> Bookings</a>
+                <a href="#" id="navBookings" onclick="switchTab('bookings')"><i class="fa-solid fa-receipt me-2"></i> Bookings & Installments</a>
                 <a href="#" id="navCommissions" onclick="switchTab('commissions')"><i class="fa-solid fa-hand-holding-dollar me-2"></i> Commissions</a>
                 <a href="#" id="navReports" onclick="switchTab('reports')"><i class="fa-solid fa-chart-line me-2"></i> Reports & Analytics</a>
                 <a href="#" id="navSettings" onclick="switchTab('settings')"><i class="fa-solid fa-gear me-2"></i> Settings</a>
@@ -266,7 +266,7 @@
             <!-- Tab 3: Bookings -->
             <div id="tabBookings" class="tab-content-item d-none">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="fw-bold text-roving-green">Confirmed Trips & Bookings</h2>
+                    <h2 class="fw-bold text-roving-green">Confirmed Trips, Bookings & Installments</h2>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBookingModal" onclick="openAddBookingModal()"><i class="fa-solid fa-plus me-1"></i> New Booking</button>
                 </div>
                 <div class="card card-custom p-3">
@@ -279,7 +279,7 @@
                                     <th>Trip Details</th>
                                     <th>Selling Price</th>
                                     <th>Net Price</th>
-                                    <th>Net Profit</th>
+                                    <th>Paid / Remaining</th>
                                     <th>Trip End Date</th>
                                     <th>Sales Rep</th>
                                     <th>Actions</th>
@@ -771,6 +771,75 @@
 
                     <button type="submit" class="btn btn-primary w-100 fw-bold" id="saveBookingBtn">Save Booking</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Manage Installments / Payments -->
+<div class="modal fade" id="installmentsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold text-roving-green"><i class="fa-solid fa-file-invoice-dollar me-2"></i>إدارة دفعات وأقساط الحجز</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="currentInstallmentBookingId">
+                
+                <div class="row g-3 mb-4 p-3 bg-light rounded border">
+                    <div class="col-md-4 text-center">
+                        <small class="text-muted d-block">إجمالي سعر البيع (Selling Price)</small>
+                        <h4 id="instModalSelling" class="fw-bold text-dark m-0">EGP 0</h4>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <small class="text-muted d-block">إجمالي المدفوع (Total Paid)</small>
+                        <h4 id="instModalPaid" class="fw-bold text-success m-0">EGP 0</h4>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <small class="text-muted d-block">المبلغ المتبقي (Remaining)</small>
+                        <h4 id="instModalRemaining" class="fw-bold text-danger m-0">EGP 0</h4>
+                    </div>
+                </div>
+
+                <!-- Add New Payment Form -->
+                <form id="addPaymentForm" class="border p-3 rounded mb-4 bg-white shadow-sm" onsubmit="addNewPaymentEntry(event)">
+                    <h6 class="fw-bold text-roving-orange mb-3"><i class="fa-solid fa-plus-circle me-1"></i> إضافة دفعة / قسط جديد</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">مبلغ الدفعة (Amount - EGP)</label>
+                            <input type="number" id="newPayAmount" class="form-control form-control-sm" placeholder="مثال: 5000" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">تاريخ الدفع (Date)</label>
+                            <input type="date" id="newPayDate" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">طريقة الدفع / ملاحظة</label>
+                            <input type="text" id="newPayMethod" class="form-control form-control-sm" placeholder="فودافون كاش / إنستابح / كاش" required>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-success btn-sm w-100 fw-bold"><i class="fa-solid fa-check me-1"></i> تسجيل وإضافة الدفعة لملف العميل</button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Payments History Table -->
+                <h6 class="fw-bold text-roving-green mb-2">سجل الدفعات السابقة</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>المبلغ المدفوع</th>
+                                <th>تاريخ الدفع</th>
+                                <th>طريقة الدفع / ملاحظات</th>
+                                <th>إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="installmentsTableBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -1341,6 +1410,9 @@ document.getElementById('addBookingForm').addEventListener('submit', function(e)
     const net = parseFloat(document.getElementById('bookingNetPrice').value) || 0;
     const profit = selling - net;
 
+    const existingBooking = editingId ? bookings.find(b => b.id === parseInt(editingId)) : null;
+    let payments = existingBooking ? (existingBooking.payments || []) : [];
+
     const bookingPayload = {
         id: editingId ? parseInt(editingId) : Date.now(),
         fileNo: clientObj ? clientObj.fileNo : 'N/A',
@@ -1351,7 +1423,8 @@ document.getElementById('addBookingForm').addEventListener('submit', function(e)
         profit: profit,
         tripEndDate: document.getElementById('bookingEndDate').value,
         createdAt: new Date().toISOString().split('T')[0],
-        assignedTo: currentUser.email
+        assignedTo: currentUser.email,
+        payments: payments
     };
 
     if (currentUser.role === 'Admin') {
@@ -1390,6 +1463,101 @@ document.getElementById('addBookingForm').addEventListener('submit', function(e)
         initApp();
     }
 });
+
+/* فتح نافذة إدارة الأقساط والدفعات */
+function openInstallmentsModal(bookingId) {
+    document.getElementById('currentInstallmentBookingId').value = bookingId;
+    document.getElementById('addPaymentForm').reset();
+    document.getElementById('newPayDate').value = new Date().toISOString().split('T')[0];
+    renderInstallmentsData(bookingId);
+    
+    const modal = new bootstrap.Modal(document.getElementById('installmentsModal'));
+    modal.show();
+}
+
+function renderInstallmentsData(bookingId) {
+    const booking = bookings.find(b => b.id === bookingId);
+    if (!booking) return;
+
+    if (!booking.payments) booking.payments = [];
+
+    const totalSelling = booking.amount || 0;
+    const totalPaid = booking.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+    const remaining = totalSelling - totalPaid;
+
+    document.getElementById('instModalSelling').innerText = "EGP " + totalSelling.toLocaleString();
+    document.getElementById('instModalPaid').innerText = "EGP " + totalPaid.toLocaleString();
+    document.getElementById('instModalRemaining').innerText = "EGP " + remaining.toLocaleString();
+
+    const tbody = document.getElementById('installmentsTableBody');
+    tbody.innerHTML = '';
+
+    if (booking.payments.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">لا توجد دفعات مسجلة بعد لهذا الحجز</td></tr>`;
+        return;
+    }
+
+    booking.payments.forEach((pay, index) => {
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>#${index + 1}</strong></td>
+                <td class="text-success fw-bold">EGP ${(pay.amount || 0).toLocaleString()}</td>
+                <td>${pay.date || '-'}</td>
+                <td>${pay.method || '-'}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deletePaymentEntry(${booking.id}, ${pay.id})" title="حذف الدفعة"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function addNewPaymentEntry(e) {
+    e.preventDefault();
+    const bookingId = parseInt(document.getElementById('currentInstallmentBookingId').value);
+    const booking = bookings.find(b => b.id === bookingId);
+    if (!booking) return;
+
+    if (!booking.payments) booking.payments = [];
+
+    const amount = parseFloat(document.getElementById('newPayAmount').value) || 0;
+    const date = document.getElementById('newPayDate').value;
+    const method = document.getElementById('newPayMethod').value.trim();
+
+    const totalPaid = booking.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+    const remaining = (booking.amount || 0) - totalPaid;
+
+    if (amount > remaining) {
+        if (!confirm(`⚠️ مبلغ الدفعة (${amount}) أكبر من المبلغ المتبقي (${remaining})! هل أنت متأكد من الاستمرار؟`)) {
+            return;
+        }
+    }
+
+    booking.payments.push({
+        id: Date.now(),
+        amount: amount,
+        date: date,
+        method: method
+    });
+
+    saveLocalData();
+    document.getElementById('addPaymentForm').reset();
+    document.getElementById('newPayDate').value = new Date().toISOString().split('T')[0];
+    renderInstallmentsData(bookingId);
+    renderBookings();
+    alert("تم إضافة الدفعة بنجاح وتحديث حسابات العميل!");
+}
+
+function deletePaymentEntry(bookingId, paymentId) {
+    if (!confirm("هل أنت متأكد من حذف هذه الدفعة نهائياً؟")) return;
+    const booking = bookings.find(b => b.id === bookingId);
+    if (!booking || !booking.payments) return;
+
+    booking.payments = booking.payments.filter(p => p.id !== paymentId);
+    saveLocalData();
+    renderInstallmentsData(bookingId);
+    renderBookings();
+}
 
 function requestDeleteBooking(id) {
     const booking = bookings.find(b => b.id === id);
@@ -1795,17 +1963,26 @@ function renderBookings() {
     let list = currentUser.role === 'Sales' ? bookings.filter(b => b.assignedTo === currentUser.email) : bookings;
 
     list.forEach(b => {
+        if (!b.payments) b.payments = [];
+        const totalSelling = b.amount || 0;
+        const totalPaid = b.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+        const remaining = totalSelling - totalPaid;
+
         tbody.innerHTML += `
             <tr>
                 <td><span class="badge bg-dark">${b.fileNo || 'N/A'}</span></td>
                 <td><strong>${b.clientName}</strong></td>
                 <td>${b.details}</td>
-                <td>EGP ${(b.amount || 0).toLocaleString()}</td>
+                <td>EGP ${totalSelling.toLocaleString()}</td>
                 <td>EGP ${(b.netPrice || 0).toLocaleString()}</td>
-                <td><strong class="text-success">EGP ${(b.profit || 0).toLocaleString()}</strong></td>
+                <td>
+                    <small class="text-success fw-bold d-block">مدفوع: EGP ${totalPaid.toLocaleString()}</small>
+                    <small class="${remaining > 0 ? 'text-danger fw-bold' : 'text-muted'} d-block">متبقي: EGP ${remaining.toLocaleString()}</small>
+                </td>
                 <td><span class="badge bg-secondary">${b.tripEndDate}</span></td>
                 <td>${b.assignedTo}</td>
                 <td>
+                    <button class="btn btn-sm btn-outline-success me-1" onclick="openInstallmentsModal(${b.id})" title="إدارة المدفوعات والأقساط"><i class="fa-solid fa-money-bill-wave"></i></button>
                     <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditBookingModal(${b.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
                     <button class="btn btn-sm btn-outline-danger" onclick="requestDeleteBooking(${b.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
                 </td>
