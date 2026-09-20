@@ -913,10 +913,18 @@ function addNotification(targetUserEmail, textMsg, isEmailDispatch = false) {
     renderNotifications();
 }
 
-// التحقق من فولو أب اليوم فقط وإظهار الإشعار في نفس اليوم المحددة
+// التحقق من فولو أب اليوم بدقة (اعتماداً على تاريخ اليوم بالكامل دون قيود وقتية دقيقة)
 function checkTodayFollowups() {
-    const today = new Date().toISOString().split('T')[0];
-    let todayTasks = followups.filter(f => f.date === today && f.status === 'Pending' && (f.assignedTo === currentUser.email || currentUser.role === 'Admin'));
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const today = `${year}-${month}-${day}`;
+
+    let todayTasks = followups.filter(f => {
+        if (!f.date) return false;
+        return f.date.trim() === today && f.status === 'Pending' && (f.assignedTo === currentUser.email || currentUser.role === 'Admin');
+    });
 
     // تحديث عداد الفولو أب اليوم بجانب زر الفولو أب في القائمة الجانبية
     const sidebarBadge = document.getElementById('sidebarTodayFollowupBadge');
@@ -1747,7 +1755,8 @@ function renderFollowups() {
     tbody.innerHTML = '';
     let list = currentUser.role === 'Sales' ? followups.filter(f => f.assignedTo === currentUser.email) : followups;
 
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
     list.forEach(f => {
         let badgeClass = 'bg-warning text-dark';
@@ -1756,7 +1765,6 @@ function renderFollowups() {
         if (f.status === 'No Answer') badgeClass = 'bg-secondary';
         if (f.status === 'Reschedule') badgeClass = 'bg-info text-dark';
 
-        // تظليل صف العميل في جدول المتابعات كإنذار إذا كان موعد الفولو أب اليوم والحالة لا زالت Pending (ولن يظهر تظليل لو تغيرت الحالة)
         let rowHighlightClass = '';
         if (f.date === today && f.status === 'Pending') {
             rowHighlightClass = 'followup-alert-highlight';
@@ -1821,7 +1829,8 @@ function renderCommissions() {
 
     let totalProfit = 0;
     let releasedCommissions = 0;
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
     list.forEach(b => {
         totalProfit += (b.profit || 0);
