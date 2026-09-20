@@ -150,9 +150,14 @@
                 <a href="#" id="navCommissions" onclick="switchTab('commissions')"><i class="fa-solid fa-hand-holding-dollar me-2"></i> Commissions</a>
                 <a href="#" id="navReports" onclick="switchTab('reports')"><i class="fa-solid fa-chart-line me-2"></i> Reports</a>
                 <a href="#" id="navSettings" onclick="switchTab('settings')"><i class="fa-solid fa-gear me-2"></i> Settings</a>
+                
                 <a href="#" id="pendingDeleteNav" class="d-none text-warning" onclick="switchTab('pendingDeletes')">
                     <i class="fa-solid fa-shield-halved me-2"></i> Deletion Requests <span id="pendingBadge" class="badge bg-danger">0</span>
                 </a>
+                <a href="#" id="pendingBookingEditNav" class="d-none text-info" onclick="switchTab('pendingBookingEdits')">
+                    <i class="fa-solid fa-file-pen me-2"></i> Booking Approvals <span id="pendingBookingEditBadge" class="badge bg-danger">0</span>
+                </a>
+
                 <a href="#" class="text-danger mt-4" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a>
             </nav>
         </div>
@@ -229,7 +234,7 @@
             <div id="tabBookings" class="tab-content-item d-none">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="fw-bold text-roving-green">Confirmed Trips & Bookings</h2>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBookingModal"><i class="fa-solid fa-plus me-1"></i> New Booking</button>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBookingModal" onclick="openAddBookingModal()"><i class="fa-solid fa-plus me-1"></i> New Booking</button>
                 </div>
                 <div class="card card-custom p-3">
                     <div class="table-responsive">
@@ -239,10 +244,12 @@
                                     <th>File #</th>
                                     <th>Client</th>
                                     <th>Trip Details</th>
-                                    <th>Total Price</th>
+                                    <th>Selling Price</th>
+                                    <th>Net Price</th>
                                     <th>Net Profit</th>
                                     <th>Trip End Date</th>
-                                    <th>Sales Representative</th>
+                                    <th>Sales Rep</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="bookingsTableBody"></tbody>
@@ -276,6 +283,7 @@
                                     <th>Agent</th>
                                     <th>Trip Details</th>
                                     <th>Trip End Date</th>
+                                    <th>Commission %</th>
                                     <th>Commission Value</th>
                                     <th>Status</th>
                                 </tr>
@@ -309,6 +317,7 @@
             <div id="tabSettings" class="tab-content-item d-none">
                 <h2 class="fw-bold text-roving-green mb-4">User & System Settings</h2>
                 <div class="row g-4">
+                    <!-- Change Password -->
                     <div class="col-md-6">
                         <div class="card card-custom p-4">
                             <h5 class="fw-bold text-roving-green mb-3"><i class="fa-solid fa-key me-2"></i>Change Password</h5>
@@ -330,6 +339,18 @@
                             </form>
                         </div>
                     </div>
+
+                    <!-- Admin Commission Manager -->
+                    <div class="col-md-6" id="adminCommissionSettingsCard">
+                        <div class="card card-custom p-4 border-warning">
+                            <h5 class="fw-bold text-roving-orange mb-3"><i class="fa-solid fa-percent me-2"></i>إدارة عمولات الموظفين (Admin Commissions)</h5>
+                            <p class="text-muted small">حدد نسبة العمولة المئوية لكل يوزر على أرباح الحجوزات الخاصة به.</p>
+                            <div id="adminCommissionListContainer">
+                                <!-- Dynamically filled -->
+                            </div>
+                            <button type="button" class="btn btn-success w-100 mt-3" onclick="saveUserCommissionsConfig()">حفظ إعدادات العمولات</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -348,6 +369,28 @@
                                 </tr>
                             </thead>
                             <tbody id="pendingDeleteTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 8: Pending Booking Edits / Approvals -->
+            <div id="tabPendingBookingEdits" class="tab-content-item d-none">
+                <h2 class="fw-bold text-info mb-4">طلبات تعديل وحذف الحجوزات (معلقة للمراجعة)</h2>
+                <div class="card card-custom p-3 border-info">
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>File #</th>
+                                    <th>Client</th>
+                                    <th>نوع الطلب</th>
+                                    <th>التفاصيل الجديدة / الطلب</th>
+                                    <th>بواسطة</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingBookingEditTableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -450,10 +493,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold">اختر العميل (ابحث بالاسم أو رقم الملف)</label>
                         <input type="text" id="followupClientSearchInput" class="form-control mb-1" placeholder="اكتب للبحث السريع (اسم أو رقم الملف)..." oninput="filterFollowupClientsList()">
-                        <select id="followupClientSelect" class="form-select" size="5" required style="max-height: 160px;">
-                            <!-- Dynamically populated -->
-                        </select>
-                        <small class="text-muted d-none" id="selectedClientDisplay"></small>
+                        <select id="followupClientSelect" class="form-select" size="5" required style="max-height: 160px;"></select>
                     </div>
                     <div class="mb-2"><label class="form-label">Follow-up Date</label><input type="date" id="followupDate" class="form-control" required></div>
                     <div class="mb-3"><label class="form-label">Notes / Instructions</label><textarea id="followupNotes" class="form-control" rows="3" required></textarea></div>
@@ -501,19 +541,46 @@
     </div>
 </div>
 
-<!-- Modal: Add Booking -->
+<!-- Modal: Add / Edit Booking -->
 <div class="modal fade" id="addBookingModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title fw-bold text-roving-green">Create Trip Booking</h5></div>
+            <div class="modal-header"><h5 class="modal-title fw-bold text-roving-green" id="bookingModalTitle">Create Trip Booking</h5></div>
             <div class="modal-body">
                 <form id="addBookingForm">
-                    <div class="mb-2"><label class="form-label">Select Client</label><select id="bookingClientSelect" class="form-select" required></select></div>
-                    <div class="mb-2"><label class="form-label">Trip Details</label><input type="text" id="bookingDetails" class="form-control" placeholder="Flight / Hotel Package..." required></div>
-                    <div class="mb-2"><label class="form-label">Total Booking Amount (EGP)</label><input type="number" id="bookingAmount" class="form-control" required></div>
-                    <div class="mb-2"><label class="form-label">Net Profit Amount (EGP)</label><input type="number" id="bookingProfit" class="form-control" required></div>
-                    <div class="mb-3"><label class="form-label">Trip End Date (For Commission Release)</label><input type="date" id="bookingEndDate" class="form-control" required></div>
-                    <button type="submit" class="btn btn-primary w-100">Save Booking</button>
+                    <input type="hidden" id="editingBookingId" value="">
+                    
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold">Select Client</label>
+                        <select id="bookingClientSelect" class="form-select" required></select>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold">Trip Details</label>
+                        <input type="text" id="bookingDetails" class="form-control" placeholder="Flight / Hotel Package..." required>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold">Total Selling Price (إجمالي سعر البيع - EGP)</label>
+                        <input type="number" id="bookingSellingPrice" class="form-control" oninput="calculateBookingProfit()" required>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold">Net Price (صافي التكلفة - EGP)</label>
+                        <input type="number" id="bookingNetPrice" class="form-control" oninput="calculateBookingProfit()" required>
+                    </div>
+
+                    <div class="mb-2 bg-light p-2 rounded border">
+                        <label class="form-label fw-semibold text-roving-green mb-0">Net Profit (صافي الربح التلقائي):</label>
+                        <h4 id="calcProfitDisplay" class="fw-bold text-roving-orange m-0">EGP 0</h4>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Trip End Date (For Commission Release)</label>
+                        <input type="date" id="bookingEndDate" class="form-control" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 fw-bold" id="saveBookingBtn">Save Booking</button>
                 </form>
             </div>
         </div>
@@ -538,13 +605,11 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-const API_BASE_URL = "https://roving-crm-backend.onrender.com";
-
 let validUsers = JSON.parse(localStorage.getItem('crm_users')) || [
-    { email: "asmaa.ashraf.1312002@gmail.com", pass: "Asmaa@2026", role: "Admin", name: "Asmaa Ashraf" },
-    { email: "ahmedashraf88513@gmail.com", pass: "AhmedA#88", role: "Admin", name: "Ahmed Ashraf" },
-    { email: "ahmedwanas11@gmail.com", pass: "Wanas!Pass2026", role: "Admin", name: "Ahmed Wanas" },
-    { email: "sales1@roving.com", pass: "SalesRoving#1", role: "Sales", name: "Sales Agent 1" }
+    { email: "asmaa.ashraf.1312002@gmail.com", pass: "Asmaa@2026", role: "Admin", name: "Asmaa Ashraf", commissionRate: 10 },
+    { email: "ahmedashraf88513@gmail.com", pass: "AhmedA#88", role: "Admin", name: "Ahmed Ashraf", commissionRate: 10 },
+    { email: "ahmedwanas11@gmail.com", pass: "Wanas!Pass2026", role: "Admin", name: "Ahmed Wanas", commissionRate: 10 },
+    { email: "sales1@roving.com", pass: "SalesRoving#1", role: "Sales", name: "Sales Agent 1", commissionRate: 8 }
 ];
 
 let currentUser = null;
@@ -552,6 +617,7 @@ let notifications = JSON.parse(localStorage.getItem('crm_notifications')) || [];
 let clients = JSON.parse(localStorage.getItem('crm_clients')) || [];
 let followups = JSON.parse(localStorage.getItem('crm_followups')) || [];
 let bookings = JSON.parse(localStorage.getItem('crm_bookings')) || [];
+let pendingBookingEdits = JSON.parse(localStorage.getItem('crm_pending_booking_edits')) || [];
 
 function saveLocalData() {
     localStorage.setItem('crm_clients', JSON.stringify(clients));
@@ -559,6 +625,7 @@ function saveLocalData() {
     localStorage.setItem('crm_bookings', JSON.stringify(bookings));
     localStorage.setItem('crm_users', JSON.stringify(validUsers));
     localStorage.setItem('crm_notifications', JSON.stringify(notifications));
+    localStorage.setItem('crm_pending_booking_edits', JSON.stringify(pendingBookingEdits));
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -617,9 +684,14 @@ async function initApp() {
     if (currentUser.role === 'Admin') {
         document.getElementById('userRoleBadge').className = "badge bg-danger mt-1";
         document.getElementById('pendingDeleteNav').classList.remove('d-none');
+        document.getElementById('pendingBookingEditNav').classList.remove('d-none');
+        document.getElementById('adminCommissionSettingsCard').style.display = 'block';
+        renderAdminCommissionSettings();
     } else {
         document.getElementById('userRoleBadge').className = "badge bg-warning text-dark mt-1";
         document.getElementById('pendingDeleteNav').classList.add('d-none');
+        document.getElementById('pendingBookingEditNav').classList.add('d-none');
+        document.getElementById('adminCommissionSettingsCard').style.display = 'none';
     }
 
     checkTodayFollowups();
@@ -639,10 +711,7 @@ function checkTodayFollowups() {
         const exists = notifications.some(n => n.targetUser === currentUser.email && n.text === notifText);
 
         if (!exists) {
-            notifications.push({
-                targetUser: currentUser.email,
-                text: notifText
-            });
+            notifications.push({ targetUser: currentUser.email, text: notifText });
         }
     });
     saveLocalData();
@@ -655,6 +724,7 @@ function renderAllViews() {
     renderCommissions();
     renderReports();
     renderNotifications();
+    renderPendingBookingEdits();
 }
 
 function switchTab(tabName) {
@@ -668,6 +738,7 @@ function switchTab(tabName) {
     if (tabName === 'reports') { document.getElementById('tabReports').classList.remove('d-none'); document.getElementById('navReports').classList.add('active'); }
     if (tabName === 'settings') { document.getElementById('tabSettings').classList.remove('d-none'); document.getElementById('navSettings').classList.add('active'); }
     if (tabName === 'pendingDeletes') { document.getElementById('tabPendingDeletes').classList.remove('d-none'); document.getElementById('pendingDeleteNav').classList.add('active'); renderPendingDeletes(); }
+    if (tabName === 'pendingBookingEdits') { document.getElementById('tabPendingBookingEdits').classList.remove('d-none'); document.getElementById('pendingBookingEditNav').classList.add('active'); renderPendingBookingEdits(); }
 }
 
 function populateDropdowns() {
@@ -783,7 +854,6 @@ document.getElementById('addClientForm').addEventListener('submit', function(e) 
             saveLocalData();
         }
     } else {
-        // Prevent duplicate client check (by phone number or exact name)
         const isDuplicate = clients.some(c => 
             (clientData.phone && c.phone === clientData.phone) || 
             (c.name.toLowerCase() === clientData.name.toLowerCase())
@@ -896,29 +966,223 @@ document.getElementById('completeFollowupForm').addEventListener('submit', funct
     initApp();
 });
 
+// --- BOOKINGS LOGIC ---
+function openAddBookingModal() {
+    document.getElementById('bookingModalTitle').innerText = "Create Trip Booking";
+    document.getElementById('editingBookingId').value = "";
+    document.getElementById('addBookingForm').reset();
+    document.getElementById('calcProfitDisplay').innerText = "EGP 0";
+    document.getElementById('saveBookingBtn').innerText = "Save Booking";
+}
+
+function calculateBookingProfit() {
+    const selling = parseFloat(document.getElementById('bookingSellingPrice').value) || 0;
+    const net = parseFloat(document.getElementById('bookingNetPrice').value) || 0;
+    const profit = selling - net;
+    document.getElementById('calcProfitDisplay').innerText = "EGP " + profit.toLocaleString();
+}
+
+function openEditBookingModal(id) {
+    const booking = bookings.find(b => b.id === id);
+    if (!booking) return;
+
+    document.getElementById('bookingModalTitle').innerText = "Edit Trip Booking";
+    document.getElementById('editingBookingId').value = booking.id;
+    document.getElementById('bookingClientSelect').value = booking.clientName;
+    document.getElementById('bookingDetails').value = booking.details || "";
+    document.getElementById('bookingSellingPrice').value = booking.amount || 0;
+    document.getElementById('bookingNetPrice').value = booking.netPrice || 0;
+    document.getElementById('bookingEndDate').value = booking.tripEndDate || "";
+    calculateBookingProfit();
+
+    document.getElementById('saveBookingBtn').innerText = currentUser.role === 'Admin' ? "Update Booking" : "إرسال طلب التعديل للأدمن";
+
+    const modal = new bootstrap.Modal(document.getElementById('addBookingModal'));
+    modal.show();
+}
+
 document.getElementById('addBookingForm').addEventListener('submit', function(e) {
     e.preventDefault();
+    const editingId = document.getElementById('editingBookingId').value;
     const clientName = document.getElementById('bookingClientSelect').value;
     const clientObj = clients.find(c => c.name === clientName);
+    
+    const selling = parseFloat(document.getElementById('bookingSellingPrice').value) || 0;
+    const net = parseFloat(document.getElementById('bookingNetPrice').value) || 0;
+    const profit = selling - net;
 
-    const newBooking = {
-        id: Date.now(),
+    const bookingPayload = {
+        id: editingId ? parseInt(editingId) : Date.now(),
         fileNo: clientObj ? clientObj.fileNo : 'N/A',
         clientName: clientName,
         details: document.getElementById('bookingDetails').value,
-        amount: parseFloat(document.getElementById('bookingAmount').value),
-        profit: parseFloat(document.getElementById('bookingProfit').value),
+        amount: selling,
+        netPrice: net,
+        profit: profit,
         tripEndDate: document.getElementById('bookingEndDate').value,
         assignedTo: currentUser.email
     };
 
-    bookings.push(newBooking);
-    saveLocalData();
-
-    bootstrap.Modal.getInstance(document.getElementById('addBookingModal')).hide();
-    document.getElementById('addBookingForm').reset();
-    initApp();
+    if (currentUser.role === 'Admin') {
+        if (editingId) {
+            const index = bookings.findIndex(b => b.id === parseInt(editingId));
+            if (index !== -1) {
+                bookings[index] = bookingPayload;
+            }
+        } else {
+            bookings.push(bookingPayload);
+        }
+        saveLocalData();
+        bootstrap.Modal.getInstance(document.getElementById('addBookingModal')).hide();
+        initApp();
+    } else {
+        // Sales requesting edit or new
+        if (editingId) {
+            pendingBookingEdits.push({
+                id: Date.now(),
+                type: 'EDIT',
+                bookingId: parseInt(editingId),
+                payload: bookingPayload,
+                requestedBy: currentUser.email
+            });
+            alert("تم إرسال طلب تعديل الحجز بنجاح إلى الأدمن للمراجعة والموافقة.");
+        } else {
+            pendingBookingEdits.push({
+                id: Date.now(),
+                type: 'CREATE',
+                payload: bookingPayload,
+                requestedBy: currentUser.email
+            });
+            alert("تم إرسال طلب إنشاء الحجز الجديد بنجاح إلى الأدمن للموافقة.");
+        }
+        saveLocalData();
+        bootstrap.Modal.getInstance(document.getElementById('addBookingModal')).hide();
+        initApp();
+    }
 });
+
+function requestDeleteBooking(id) {
+    const booking = bookings.find(b => b.id === id);
+    if (!booking) return;
+
+    if (currentUser.role === 'Admin') {
+        if (confirm("هل أنت متأكد من حذف هذا الحجز نهائياً؟")) {
+            bookings = bookings.filter(b => b.id !== id);
+            saveLocalData();
+            initApp();
+        }
+    } else {
+        pendingBookingEdits.push({
+            id: Date.now(),
+            type: 'DELETE',
+            bookingId: id,
+            payload: booking,
+            requestedBy: currentUser.email
+        });
+        saveLocalData();
+        alert("تم إرسال طلب حذف الحجز إلى الأدمن للموافقة.");
+        initApp();
+    }
+}
+
+function renderPendingBookingEdits() {
+    const tbody = document.getElementById('pendingBookingEditTableBody');
+    const badge = document.getElementById('pendingBookingEditBadge');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    badge.innerText = pendingBookingEdits.length;
+
+    if (pendingBookingEdits.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">لا توجد طلبات معلقة حالياً</td></tr>`;
+        return;
+    }
+
+    pendingBookingEdits.forEach(req => {
+        let typeBadge = '<span class="badge bg-primary">إنشاء جديد</span>';
+        if (req.type === 'EDIT') typeBadge = '<span class="badge bg-warning text-dark">تعديل</span>';
+        if (req.type === 'DELETE') typeBadge = '<span class="badge bg-danger">حذف</span>';
+
+        tbody.innerHTML += `
+            <tr>
+                <td><span class="badge bg-dark">${req.payload.fileNo || 'N/A'}</span></td>
+                <td><strong>${req.payload.clientName}</strong></td>
+                <td>${typeBadge}</td>
+                <td><small>${req.payload.details} | البيع: ${req.payload.amount} | البروفيت: ${req.payload.profit}</small></td>
+                <td>${req.requestedBy}</td>
+                <td>
+                    <button class="btn btn-sm btn-success me-1" onclick="approveBookingRequest(${req.id})"><i class="fa-solid fa-check"></i> موافقة</button>
+                    <button class="btn btn-sm btn-secondary" onclick="rejectBookingRequest(${req.id})"><i class="fa-solid fa-xmark"></i> رفض</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function approveBookingRequest(reqId) {
+    const reqIndex = pendingBookingEdits.findIndex(r => r.id === reqId);
+    if (reqIndex === -1) return;
+    const req = pendingBookingEdits[reqIndex];
+
+    if (req.type === 'CREATE') {
+        bookings.push(req.payload);
+    } else if (req.type === 'EDIT') {
+        const index = bookings.findIndex(b => b.id === req.bookingId);
+        if (index !== -1) {
+            bookings[index] = req.payload;
+        }
+    } else if (req.type === 'DELETE') {
+        bookings = bookings.filter(b => b.id !== req.bookingId);
+    }
+
+    pendingBookingEdits.splice(reqIndex, 1);
+    saveLocalData();
+    initApp();
+}
+
+function rejectBookingRequest(reqId) {
+    pendingBookingEdits = pendingBookingEdits.filter(r => r.id !== reqId);
+    saveLocalData();
+    initApp();
+}
+
+// --- ADMIN COMMISSION CONFIGURATION ---
+function renderAdminCommissionSettings() {
+    const container = document.getElementById('adminCommissionListContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    validUsers.forEach((u, idx) => {
+        container.innerHTML += `
+            <div class="mb-2 d-flex justify-content-between align-items-center border-bottom pb-2">
+                <div>
+                    <strong>${u.name}</strong> <small class="text-muted">(${u.role})</small>
+                </div>
+                <div style="width: 120px;">
+                    <div class="input-group input-group-sm">
+                        <input type="number" class="form-control user-comm-input" data-email="${u.email}" value="${u.commissionRate || 10}" min="0" max="100">
+                        <span class="input-group-text">%</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function saveUserCommissionsConfig() {
+    const inputs = document.querySelectorAll('.user-comm-input');
+    inputs.forEach(inp => {
+        const email = inp.getAttribute('data-email');
+        const val = parseFloat(inp.value) || 0;
+        const targetUsr = validUsers.find(u => u.email === email);
+        if (targetUsr) {
+            targetUsr.commissionRate = val;
+        }
+    });
+    saveLocalData();
+    alert("تم تحديث نسب العمولات بنجاح!");
+    initApp();
+}
 
 document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -969,7 +1233,6 @@ function renderClients() {
     
     let list = currentUser.role === 'Sales' ? clients.filter(c => c.createdBy === currentUser.email || c.assignedTo === currentUser.email) : clients;
 
-    // Filter by phone search if entered
     const phoneQuery = document.getElementById('clientPhoneSearch') ? document.getElementById('clientPhoneSearch').value.trim() : "";
     if (phoneQuery !== "") {
         list = list.filter(c => c.phone && c.phone.includes(phoneQuery));
@@ -1053,10 +1316,15 @@ function renderBookings() {
                 <td><span class="badge bg-dark">${b.fileNo || 'N/A'}</span></td>
                 <td><strong>${b.clientName}</strong></td>
                 <td>${b.details}</td>
-                <td>EGP ${b.amount ? b.amount.toLocaleString() : 0}</td>
-                <td>EGP ${b.profit ? b.profit.toLocaleString() : 0}</td>
+                <td>EGP ${(b.amount || 0).toLocaleString()}</td>
+                <td>EGP ${(b.netPrice || 0).toLocaleString()}</td>
+                <td><strong class="text-success">EGP ${(b.profit || 0).toLocaleString()}</strong></td>
                 <td><span class="badge bg-secondary">${b.tripEndDate}</span></td>
                 <td>${b.assignedTo}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditBookingModal(${b.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="requestDeleteBooking(${b.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                </td>
             </tr>
         `;
     });
@@ -1074,7 +1342,12 @@ function renderCommissions() {
 
     list.forEach(b => {
         totalProfit += (b.profit || 0);
-        const commValue = (b.profit || 0) * 0.10; 
+        
+        // Find commission rate for the booking assigned agent
+        const agentObj = validUsers.find(u => u.email.toLowerCase() === (b.assignedTo || "").toLowerCase());
+        const rate = agentObj && agentObj.commissionRate !== undefined ? agentObj.commissionRate : 10;
+
+        const commValue = (b.profit || 0) * (rate / 100); 
         const isCompleted = b.tripEndDate <= today;
 
         if (isCompleted) releasedCommissions += commValue;
@@ -1084,6 +1357,7 @@ function renderCommissions() {
                 <td>${b.assignedTo}</td>
                 <td>${b.details}</td>
                 <td>${b.tripEndDate}</td>
+                <td><span class="badge bg-secondary">${rate}%</span></td>
                 <td><strong class="text-roving-orange">EGP ${commValue.toLocaleString()}</strong></td>
                 <td>
                     ${isCompleted ? 
