@@ -618,7 +618,6 @@ async function initApp() {
     renderAllViews();
 }
 
-// فحص مواعيد الفولو أب اليومية وإنشاء التنبيهات وإشعار البريد الإلكتروني
 function checkTodayFollowups() {
     const today = new Date().toISOString().split('T')[0];
     let todayTasks = followups.filter(f => f.date === today && f.status === 'Pending' && (f.assignedTo === currentUser.email || currentUser.role === 'Admin'));
@@ -627,7 +626,6 @@ function checkTodayFollowups() {
         const clientObj = clients.find(c => c.name === task.clientName);
         const fileNum = clientObj ? clientObj.fileNo : 'N/A';
         
-        // التحقق من عدم تكرار إشعار نفس المهمة اليوم
         const notifText = `📞 تنبيه فولو أب اليوم للملف (#${fileNum}) - العميل: <strong>${task.clientName}</strong>`;
         const exists = notifications.some(n => n.targetUser === currentUser.email && n.text === notifText);
 
@@ -636,9 +634,6 @@ function checkTodayFollowups() {
                 targetUser: currentUser.email,
                 text: notifText
             });
-
-            // إشعار البريد الإلكتروني التلقائي (محاكاة أو رابط mailto جاهز)
-            console.log(`Sending Email to ${currentUser.email}: موعد فولو أب مع العميل ${task.clientName} رقم الملف #${fileNum} اليوم.`);
         }
     });
     saveLocalData();
@@ -720,7 +715,7 @@ function openEditClientModal(id) {
     modal.show();
 }
 
-document.getElementById('addClientForm').addEventListener('submit', async function(e) {
+document.getElementById('addClientForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const editingId = document.getElementById('editingClientId').value;
     
@@ -783,7 +778,6 @@ document.getElementById('addFollowupForm').addEventListener('submit', function(e
     initApp();
 });
 
-// فتح نافذة استكمال الفولو أب وتسجيل النتيجة
 function openCompleteFollowupModal(id) {
     document.getElementById('completingFollowupId').value = id;
     document.getElementById('completeFollowupForm').reset();
@@ -816,7 +810,6 @@ document.getElementById('completeFollowupForm').addEventListener('submit', funct
     followup.status = outcomeStatus;
     followup.note += ` | [النتيجة: ${outcomeStatus}] - ${outcomeNotes}`;
 
-    // إذا اختر تجديد المتابعة، يتم إنشاء مهمة فولو أب جديدة تلقائياً
     if (outcomeStatus === 'Reschedule') {
         const nextDate = document.getElementById('nextFollowupDate').value;
         if (nextDate) {
@@ -831,7 +824,6 @@ document.getElementById('completeFollowupForm').addEventListener('submit', funct
             });
         }
     } else {
-        // تحديث حالة العميل الأساسية بناءً على نتيجة الفولو أب
         const client = clients.find(c => c.name === followup.clientName);
         if (client) {
             if (outcomeStatus === 'Booked') client.status = 'Closed/Won';
