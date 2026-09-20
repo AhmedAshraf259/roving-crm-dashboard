@@ -446,6 +446,32 @@
                             <button type="button" class="btn btn-success w-100 mt-3" onclick="saveUserCommissionsConfig()">حفظ إعدادات العمولات</button>
                         </div>
                     </div>
+
+                    <!-- Admin User Management Card (إضافة وحذف يوزر جديد) -->
+                    <div class="col-md-12" id="adminUserManagementCard" style="display: none;">
+                        <div class="card card-custom p-4 border-danger">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold text-danger"><i class="fa-solid fa-users-gear me-2"></i>إدارة مستخدمي النظام (Add / Delete Users)</h5>
+                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#addUserModal"><i class="fa-solid fa-user-plus me-1"></i> إضافة مستخدم جديد</button>
+                            </div>
+                            <p class="text-muted small">يمكنك من هنا إضافة مستخدمين جدد (أدمن أو مسؤولي مبيعات) أو حذف المستخدمين الحاليين من النظام.</p>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>الاسم</th>
+                                            <th>البريد الإلكتروني (جيميل/أووتلوك)</th>
+                                            <th>الدور (Role)</th>
+                                            <th>نسبة العمولة</th>
+                                            <th>الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adminUsersTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -491,6 +517,46 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add New User (Admin Feature) -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-danger"><i class="fa-solid fa-user-plus me-2"></i>إضافة مستخدم جديد للنظام</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addNewUserForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">اسم المستخدم (Full Name)</label>
+                        <input type="text" id="newUserName" class="form-control" placeholder="مثال: Mohamed Ali" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">البريد الإلكتروني (Gmail / Outlook / Any)</label>
+                        <input type="email" id="newUserEmail" class="form-control" placeholder="user@gmail.com أو outlook.com" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">كلمة السر (Password)</label>
+                        <input type="text" id="newUserPass" class="form-control" placeholder="كلمة المرور المؤقتة" required minlength="6">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">الصلاحية (Role)</label>
+                        <select id="newUserRole" class="form-select" required>
+                            <option value="Sales">Sales (مبيعات)</option>
+                            <option value="Admin">Admin (مدير النظام)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">نسبة العمولة الافتراضية (%)</label>
+                        <input type="number" id="newUserCommission" class="form-control" value="10" min="0" max="100" required>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100 fw-bold">حفظ وإضافة المستخدم</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -593,6 +659,15 @@
                     </div>
                     <div class="mb-2"><label class="form-label">Follow-up Date</label><input type="date" id="followupDate" class="form-control" required></div>
                     <div class="mb-3"><label class="form-label">Notes / Instructions</label><textarea id="followupNotes" class="form-control" rows="3" required></textarea></div>
+                    
+                    <!-- خيار إرسال إشعار بريدي عند الفولو أب -->
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="sendEmailNotifCheck" checked>
+                        <label class="form-check-label small" for="sendEmailNotifCheck">
+                            إرسال تفاصيل الفولو أب إلى البريد المسجل للموظف (Gmail / Outlook)
+                        </label>
+                    </div>
+
                     <button type="submit" class="btn btn-primary w-100" id="saveFollowupBtn">Schedule Follow-up</button>
                 </form>
             </div>
@@ -785,14 +860,17 @@ async function initApp() {
         document.getElementById('pendingDeleteNav').classList.remove('d-none');
         document.getElementById('pendingBookingEditNav').classList.remove('d-none');
         document.getElementById('adminCommissionSettingsCard').style.display = 'block';
+        document.getElementById('adminUserManagementCard').style.display = 'block';
         document.getElementById('adminReportFilterContainer').classList.remove('d-none');
         renderAdminCommissionSettings();
+        renderAdminUsersTable();
         populateReportUserDropdown();
     } else {
         document.getElementById('userRoleBadge').className = "badge bg-warning text-dark mt-1";
         document.getElementById('pendingDeleteNav').classList.add('d-none');
         document.getElementById('pendingBookingEditNav').classList.add('d-none');
         document.getElementById('adminCommissionSettingsCard').style.display = 'none';
+        document.getElementById('adminUserManagementCard').style.display = 'none';
         document.getElementById('adminReportFilterContainer').classList.add('d-none');
     }
 
@@ -801,8 +879,8 @@ async function initApp() {
     renderAllViews();
 }
 
-// دالة مخصصة لإنشاء إشعار جديد بالتاريخ والوقت
-function addNotification(targetUserEmail, textMsg) {
+// دالة مخصصة لإنشاء إشعار ومحاكاة الإرسال البريدي الفعلي (Gmail / Outlook)
+function addNotification(targetUserEmail, textMsg, isEmailDispatch = false) {
     const now = new Date();
     const dateStr = now.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' }) + ' - ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
@@ -815,6 +893,11 @@ function addNotification(targetUserEmail, textMsg) {
     });
     saveLocalData();
     renderNotifications();
+
+    if (isEmailDispatch) {
+        // محاكاة إرسال ائتماني أو فتح عميل البريد الافتراضي (Gmail/Outlook) إذا رغب المستخدم
+        console.log(`[Email Dispatched to ${targetUserEmail}]: ${textMsg}`);
+    }
 }
 
 function checkTodayFollowups() {
@@ -842,6 +925,9 @@ function renderAllViews() {
     renderReports();
     renderNotifications();
     renderPendingBookingEdits();
+    if (currentUser.role === 'Admin') {
+        renderAdminUsersTable();
+    }
 }
 
 function switchTab(tabName) {
@@ -1037,6 +1123,7 @@ document.getElementById('addFollowupForm').addEventListener('submit', function(e
         return;
     }
     const clientObj = clients.find(c => c.name === clientName);
+    const sendEmailChecked = document.getElementById('sendEmailNotifCheck').checked;
     
     const followupPayload = {
         id: editingId ? parseInt(editingId) : Date.now(),
@@ -1058,6 +1145,15 @@ document.getElementById('addFollowupForm').addEventListener('submit', function(e
         }
     } else {
         followups.push(followupPayload);
+        
+        // إرسال تنبيه البريد الإلكتروني للمسؤول عن الفولو أب (جيميل / أووتلوك)
+        if (sendEmailChecked) {
+            const emailSubject = encodeURIComponent(`مهمة متابعة جديدة: ${clientName}`);
+            const emailBody = encodeURIComponent(`مرحباً،\n\nلديك مهمة فولو أب جديدة مع العميل: ${clientName} (ملف رقم: ${clientObj ? clientObj.fileNo : 'N/A'})\nموعد المتابعة: ${followupPayload.date}\nملاحظات: ${followupPayload.note}\n\nيرجى المتابعة عبر نظام Roving CRM.`);
+            
+            // إضافة إشعار داخل التطبيق ومحاكاة رسالة بريد إلكتروني
+            addNotification(currentUser.email, `📧 تم إرسال رسالة فولو أب على بريدك (${currentUser.email}) للملف #${clientObj ? clientObj.fileNo : 'N/A'} - العميل: <strong>${clientName}</strong>`, true);
+        }
     }
 
     saveLocalData();
@@ -1131,6 +1227,61 @@ document.getElementById('completeFollowupForm').addEventListener('submit', funct
     bootstrap.Modal.getInstance(document.getElementById('completeFollowupModal')).hide();
     initApp();
 });
+
+// --- ADMIN USER MANAGEMENT LOGIC (إضافة وحذف يوزر) ---
+function renderAdminUsersTable() {
+    const tbody = document.getElementById('adminUsersTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    validUsers.forEach(u => {
+        let roleBadge = u.role === 'Admin' ? '<span class="badge bg-danger">Admin</span>' : '<span class="badge bg-primary">Sales</span>';
+        let deleteBtn = u.email.toLowerCase() === currentUser.email.toLowerCase() ? 
+            '<span class="text-muted small">الحساب الحالي</span>' : 
+            `<button class="btn btn-sm btn-outline-danger" onclick="deleteUserSystem('${u.email}')"><i class="fa-solid fa-trash"></i> حذف</button>`;
+
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${u.name}</strong></td>
+                <td><small class="text-dark">${u.email}</small></td>
+                <td>${roleBadge}</td>
+                <td>${u.commissionRate || 10}%</td>
+                <td>${deleteBtn}</td>
+            </tr>
+        `;
+    });
+}
+
+document.getElementById('addNewUserForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const name = document.getElementById('newUserName').value.trim();
+    const email = document.getElementById('newUserEmail').value.trim().toLowerCase();
+    const pass = document.getElementById('newUserPass').value.trim();
+    const role = document.getElementById('newUserRole').value;
+    const commissionRate = parseFloat(document.getElementById('newUserCommission').value) || 10;
+
+    const exists = validUsers.some(u => u.email.toLowerCase() === email);
+    if (exists) {
+        alert("⚠️ هذا البريد الإلكتروني مسجل مسبقاً لمستخدم آخر!");
+        return;
+    }
+
+    validUsers.push({ email, pass, role, name, commissionRate });
+    saveLocalData();
+
+    bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide();
+    document.getElementById('addNewUserForm').reset();
+    alert(`تم إضافة المستخدم (${name}) بنجاح!`);
+    initApp();
+});
+
+function deleteUserSystem(email) {
+    if (confirm(`هل أنت متأكد من حذف المستخدم (${email}) نهائياً من النظام؟`)) {
+        validUsers = validUsers.filter(u => u.email.toLowerCase() !== email.toLowerCase());
+        saveLocalData();
+        initApp();
+    }
+}
 
 // --- BOOKINGS LOGIC ---
 function openAddBookingModal() {
