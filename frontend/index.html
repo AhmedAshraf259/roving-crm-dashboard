@@ -365,12 +365,12 @@
 <script>
 const API_BASE_URL = "https://roving-crm-backend.onrender.com";
 
-// 🔐 قائمة الحسابات المصرح لها بالدخول
+// 🔐 قائمة الحسابات مع كلمة سر مخصصة وفريدة لكل بريد إلكتروني
 const validUsers = [
-    { email: "asmaa.ashraf.1312002@gmail.com", pass: "123456", role: "Admin", name: "Asmaa Ashraf" },
-    { email: "ahmedashraf88513@gmail.com", pass: "123456", role: "Admin", name: "Ahmed Ashraf" },
-    { email: "ahmedwanas11@gmail.com", pass: "123456", role: "Admin", name: "Ahmed Wanas" },
-    { email: "sales1@roving.com", pass: "123456", role: "Sales", name: "Sales Agent 1" }
+    { email: "asmaa.ashraf.1312002@gmail.com", pass: "Asmaa@2026", role: "Admin", name: "Asmaa Ashraf" },
+    { email: "ahmedashraf88513@gmail.com", pass: "AhmedA#88", role: "Admin", name: "Ahmed Ashraf" },
+    { email: "ahmedwanas11@gmail.com", pass: "Wanas!Pass2026", role: "Admin", name: "Ahmed Wanas" },
+    { email: "sales1@roving.com", pass: "SalesRoving#1", role: "Sales", name: "Sales Agent 1" }
 ];
 
 let currentUser = null;
@@ -379,7 +379,6 @@ let clients = [];
 let followups = [];
 let bookings = [];
 
-// فحص الجلسة عند فتح الصفحة
 window.addEventListener('DOMContentLoaded', () => {
     const savedUser = localStorage.getItem('crm_user');
     if (savedUser) {
@@ -394,7 +393,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// 🛑 منع التسجيل إلا ببيانات مطابقة تماماً
+// 🛑 فحص مطابقة الإيميل مع كلمة السر الخاصة به تماماً
 document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -405,22 +404,24 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     errorDiv.classList.add('d-none');
     errorDiv.innerText = "";
 
-    // مطابقة البيانات محلياً
-    const matchedUser = validUsers.find(u => u.email.toLowerCase() === emailInput && u.pass === passwordInput);
+    // 1. البحث أولاً عن الحساب باستخدام البريد الإلكتروني
+    const targetUser = validUsers.find(u => u.email.toLowerCase() === emailInput);
 
-    if (matchedUser) {
-        currentUser = { email: matchedUser.email, role: matchedUser.role, name: matchedUser.name };
-        localStorage.setItem('crm_user', JSON.stringify(currentUser));
-
-        document.getElementById('loginSection').classList.add('d-none');
-        document.getElementById('appSection').classList.remove('d-none');
-        
-        initApp();
-    } else {
-        // إظهار رسالة خطأ ومنع الدخول نهائياً
+    // 2. إذا لم يكن الإيميل موجوداً أو كلمة السر لا تطابق كلمة سر هذا الحساب المحددة
+    if (!targetUser || targetUser.pass !== passwordInput) {
         errorDiv.innerText = "البريد الإلكتروني أو كلمة السر غير صحيحة!";
         errorDiv.classList.remove('d-none');
+        return; // إيقاف العملية ومنع الدخول نهائياً
     }
+
+    // 3. التسجيل في حال تطابق كلمة السر المقترنة بالإيميل فقط
+    currentUser = { email: targetUser.email, role: targetUser.role, name: targetUser.name };
+    localStorage.setItem('crm_user', JSON.stringify(currentUser));
+
+    document.getElementById('loginSection').classList.add('d-none');
+    document.getElementById('appSection').classList.remove('d-none');
+    
+    initApp();
 });
 
 function handleLogout() {
