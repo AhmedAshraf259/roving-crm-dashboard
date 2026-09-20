@@ -70,7 +70,7 @@
             background: var(--roving-dark-green); 
             border-radius: 8px; 
             padding: 10px; 
-            max-height: 200px; 
+            max-height: 220px; 
             overflow-y: auto; 
         }
 
@@ -171,6 +171,7 @@
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
+                                    <th>File #</th>
                                     <th>Name *</th>
                                     <th>Source *</th>
                                     <th>Contact Info</th>
@@ -198,6 +199,7 @@
                         <table class="table align-middle">
                             <thead class="table-light">
                                 <tr>
+                                    <th>File #</th>
                                     <th>Client</th>
                                     <th>Follow-up Date</th>
                                     <th>Notes</th>
@@ -223,6 +225,7 @@
                         <table class="table align-middle">
                             <thead class="table-light">
                                 <tr>
+                                    <th>File #</th>
                                     <th>Client</th>
                                     <th>Trip Details</th>
                                     <th>Total Price</th>
@@ -316,21 +319,6 @@
                             </form>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card card-custom p-4">
-                            <h5 class="fw-bold text-roving-green mb-3"><i class="fa-solid fa-bell me-2"></i>Notification Preferences</h5>
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="notifTransferEmail" checked>
-                                <label class="form-check-label fw-semibold" for="notifTransferEmail">Send Email Alert on Client Transfer</label>
-                            </div>
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="notifTransferApp" checked>
-                                <label class="form-check-label fw-semibold" for="notifTransferApp">In-App Notification on Client Transfer</label>
-                            </div>
-                            <hr>
-                            <p class="text-muted small">Notifications will be pushed directly to assigned sales agents when ownership of clients is updated.</p>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -342,6 +330,7 @@
                         <table class="table align-middle">
                             <thead>
                                 <tr>
+                                    <th>File #</th>
                                     <th>Client Name</th>
                                     <th>Requested By</th>
                                     <th>Actions</th>
@@ -370,13 +359,11 @@
                     <input type="hidden" id="editingClientId" value="">
                     
                     <div class="row g-3">
-                        <!-- Required Field 1: Name -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Client Name <span class="text-danger">*</span></label>
                             <input type="text" id="clientName" class="form-control" placeholder="e.g. Mohamed Ali" required>
                         </div>
 
-                        <!-- Required Field 2: Lead Source -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Lead Source (جهة الوصول) <span class="text-danger">*</span></label>
                             <select id="clientSource" class="form-select" required>
@@ -391,7 +378,6 @@
                             </select>
                         </div>
 
-                        <!-- Required Field 3: Status -->
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Status <span class="text-danger">*</span></label>
                             <select id="clientStatusSelect" class="form-select" required>
@@ -408,7 +394,6 @@
                             <select id="clientAssignedTo" class="form-select" required></select>
                         </div>
 
-                        <!-- Contact Details -->
                         <div class="col-md-6">
                             <label class="form-label">Phone Number</label>
                             <input type="tel" id="clientPhone" class="form-control" placeholder="01xxxxxxxxx">
@@ -419,7 +404,6 @@
                             <input type="email" id="clientEmail" class="form-control" placeholder="client@email.com">
                         </div>
 
-                        <!-- Passport Info -->
                         <div class="col-md-6">
                             <label class="form-label">Passport Number (رقم الباسبور)</label>
                             <input type="text" id="clientPassportNum" class="form-control" placeholder="A12345678">
@@ -430,7 +414,6 @@
                             <input type="date" id="clientPassportExp" class="form-control">
                         </div>
 
-                        <!-- Notes Field -->
                         <div class="col-12">
                             <label class="form-label fw-semibold">Client Details & Notes (تفاصيل العميل وتفضيلاته)</label>
                             <textarea id="clientNotes" class="form-control" rows="3" placeholder="اكتب التفاصيل الخاصة بالعميل، اهتماماته، أو ملاحظات الرحلة..."></textarea>
@@ -457,6 +440,43 @@
                     <div class="mb-2"><label class="form-label">Follow-up Date</label><input type="date" id="followupDate" class="form-control" required></div>
                     <div class="mb-3"><label class="form-label">Notes / Instructions</label><textarea id="followupNotes" class="form-control" rows="3" required></textarea></div>
                     <button type="submit" class="btn btn-primary w-100">Schedule Follow-up</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Complete Follow-up Action & Outcome -->
+<div class="modal fade" id="completeFollowupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title fw-bold text-roving-green">Follow-up Result & Outcome</h5></div>
+            <div class="modal-body">
+                <form id="completeFollowupForm">
+                    <input type="hidden" id="completingFollowupId">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">نتيجة المتابعة (اختر الحالة)</label>
+                        <select id="followupOutcomeStatus" class="form-select" required onchange="toggleRescheduleField(this.value)">
+                            <option value="Booked">حجز (Booked)</option>
+                            <option value="Lost">فقد (Lost)</option>
+                            <option value="No Answer">مش بيرد (No Answer)</option>
+                            <option value="Reschedule">تجديد موعد فولو أب (Reschedule)</option>
+                        </select>
+                    </div>
+
+                    <div id="rescheduleExtraFields" class="d-none border p-3 rounded mb-3 bg-light">
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold">تاريخ المتابعة القادمة</label>
+                            <input type="date" id="nextFollowupDate" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">ملاحظات ما تم التوصل إليه (Notes)</label>
+                        <textarea id="followupOutcomeNotes" class="form-control" rows="3" placeholder="اكتب تفاصيل ما تم في المكالمة أو سبب الحالة..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">Save & Update Result</button>
                 </form>
             </div>
         </div>
@@ -511,7 +531,6 @@ let validUsers = JSON.parse(localStorage.getItem('crm_users')) || [
 
 let currentUser = null;
 let notifications = JSON.parse(localStorage.getItem('crm_notifications')) || [];
-
 let clients = JSON.parse(localStorage.getItem('crm_clients')) || [];
 let followups = JSON.parse(localStorage.getItem('crm_followups')) || [];
 let bookings = JSON.parse(localStorage.getItem('crm_bookings')) || [];
@@ -594,11 +613,35 @@ async function initApp() {
         document.getElementById('pendingDeleteNav').classList.add('d-none');
     }
 
+    checkTodayFollowups();
     populateDropdowns();
-    await fetchClientsData();
-    await fetchFollowupsData();
-    await fetchBookingsData();
     renderAllViews();
+}
+
+// فحص مواعيد الفولو أب اليومية وإنشاء التنبيهات وإشعار البريد الإلكتروني
+function checkTodayFollowups() {
+    const today = new Date().toISOString().split('T')[0];
+    let todayTasks = followups.filter(f => f.date === today && f.status === 'Pending' && (f.assignedTo === currentUser.email || currentUser.role === 'Admin'));
+
+    todayTasks.forEach(task => {
+        const clientObj = clients.find(c => c.name === task.clientName);
+        const fileNum = clientObj ? clientObj.fileNo : 'N/A';
+        
+        // التحقق من عدم تكرار إشعار نفس المهمة اليوم
+        const notifText = `📞 تنبيه فولو أب اليوم للملف (#${fileNum}) - العميل: <strong>${task.clientName}</strong>`;
+        const exists = notifications.some(n => n.targetUser === currentUser.email && n.text === notifText);
+
+        if (!exists) {
+            notifications.push({
+                targetUser: currentUser.email,
+                text: notifText
+            });
+
+            // إشعار البريد الإلكتروني التلقائي (محاكاة أو رابط mailto جاهز)
+            console.log(`Sending Email to ${currentUser.email}: موعد فولو أب مع العميل ${task.clientName} رقم الملف #${fileNum} اليوم.`);
+        }
+    });
+    saveLocalData();
 }
 
 function renderAllViews() {
@@ -643,51 +686,9 @@ function populateDropdowns() {
 
     let filteredClients = currentUser.role === 'Sales' ? clients.filter(c => c.assignedTo === currentUser.email || c.createdBy === currentUser.email) : clients;
     filteredClients.forEach(c => {
-        if (bookingClientSelect) bookingClientSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-        if (followupClientSelect) followupClientSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+        if (bookingClientSelect) bookingClientSelect.innerHTML += `<option value="${c.name}">[#${c.fileNo}] ${c.name}</option>`;
+        if (followupClientSelect) followupClientSelect.innerHTML += `<option value="${c.name}">[#${c.fileNo}] ${c.name}</option>`;
     });
-}
-
-async function fetchClientsData() {
-    try {
-        const res = await apiFetch('/api/clients');
-        if (res.ok) {
-            const apiClients = await res.json();
-            if (Array.isArray(apiClients) && apiClients.length > 0) {
-                clients = apiClients;
-                saveLocalData();
-            }
-        }
-    } catch (e) {}
-    renderClients();
-}
-
-async function fetchFollowupsData() {
-    try {
-        const res = await apiFetch('/api/followups');
-        if (res.ok) {
-            const apiFollowups = await res.json();
-            if (Array.isArray(apiFollowups) && apiFollowups.length > 0) {
-                followups = apiFollowups;
-                saveLocalData();
-            }
-        }
-    } catch (e) {}
-    renderFollowups();
-}
-
-async function fetchBookingsData() {
-    try {
-        const res = await apiFetch('/api/bookings');
-        if (res.ok) {
-            const apiBookings = await res.json();
-            if (Array.isArray(apiBookings) && apiBookings.length > 0) {
-                bookings = apiBookings;
-                saveLocalData();
-            }
-        }
-    } catch (e) {}
-    renderBookings();
 }
 
 function openAddClientModal() {
@@ -721,7 +722,6 @@ function openEditClientModal(id) {
 
 document.getElementById('addClientForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    
     const editingId = document.getElementById('editingClientId').value;
     
     const clientData = {
@@ -737,24 +737,22 @@ document.getElementById('addClientForm').addEventListener('submit', async functi
     };
 
     if (editingId) {
-        // Edit Existing Client
         const client = clients.find(c => c.id === parseInt(editingId));
         if (client) {
             Object.assign(client, clientData);
             saveLocalData();
-            try { await apiFetch(`/api/clients/${editingId}`, { method: 'PUT', body: JSON.stringify(client) }); } catch (err) {}
         }
     } else {
-        // Add New Client
+        const fileNo = "RV-" + Math.floor(1000 + Math.random() * 9000);
         const newClient = {
             id: Date.now(),
+            fileNo: fileNo,
             ...clientData,
             createdBy: currentUser.email,
             deleteRequested: false
         };
         clients.push(newClient);
         saveLocalData();
-        try { await apiFetch('/api/clients', { method: 'POST', body: JSON.stringify(newClient) }); } catch (err) {}
     }
 
     bootstrap.Modal.getInstance(document.getElementById('addClientModal')).hide();
@@ -762,11 +760,15 @@ document.getElementById('addClientForm').addEventListener('submit', async functi
     initApp();
 });
 
-document.getElementById('addFollowupForm').addEventListener('submit', async function(e) {
+document.getElementById('addFollowupForm').addEventListener('submit', function(e) {
     e.preventDefault();
+    const clientName = document.getElementById('followupClientSelect').value;
+    const clientObj = clients.find(c => c.name === clientName);
+    
     const newFollowup = {
         id: Date.now(),
-        clientName: document.getElementById('followupClientSelect').value,
+        fileNo: clientObj ? clientObj.fileNo : 'N/A',
+        clientName: clientName,
         date: document.getElementById('followupDate').value,
         note: document.getElementById('followupNotes').value,
         assignedTo: currentUser.email,
@@ -776,18 +778,81 @@ document.getElementById('addFollowupForm').addEventListener('submit', async func
     followups.push(newFollowup);
     saveLocalData();
 
-    try { await apiFetch('/api/followups', { method: 'POST', body: JSON.stringify(newFollowup) }); } catch (err) {}
-
     bootstrap.Modal.getInstance(document.getElementById('addFollowupModal')).hide();
     document.getElementById('addFollowupForm').reset();
     initApp();
 });
 
-document.getElementById('addBookingForm').addEventListener('submit', async function(e) {
+// فتح نافذة استكمال الفولو أب وتسجيل النتيجة
+function openCompleteFollowupModal(id) {
+    document.getElementById('completingFollowupId').value = id;
+    document.getElementById('completeFollowupForm').reset();
+    document.getElementById('rescheduleExtraFields').classList.add('d-none');
+    
+    const modal = new bootstrap.Modal(document.getElementById('completeFollowupModal'));
+    modal.show();
+}
+
+function toggleRescheduleField(val) {
+    const extraField = document.getElementById('rescheduleExtraFields');
+    if (val === 'Reschedule') {
+        extraField.classList.remove('d-none');
+        document.getElementById('nextFollowupDate').required = true;
+    } else {
+        extraField.classList.add('d-none');
+        document.getElementById('nextFollowupDate').required = false;
+    }
+}
+
+document.getElementById('completeFollowupForm').addEventListener('submit', function(e) {
     e.preventDefault();
+    const id = parseInt(document.getElementById('completingFollowupId').value);
+    const outcomeStatus = document.getElementById('followupOutcomeStatus').value;
+    const outcomeNotes = document.getElementById('followupOutcomeNotes').value;
+
+    const followup = followups.find(f => f.id === id);
+    if (!followup) return;
+
+    followup.status = outcomeStatus;
+    followup.note += ` | [النتيجة: ${outcomeStatus}] - ${outcomeNotes}`;
+
+    // إذا اختر تجديد المتابعة، يتم إنشاء مهمة فولو أب جديدة تلقائياً
+    if (outcomeStatus === 'Reschedule') {
+        const nextDate = document.getElementById('nextFollowupDate').value;
+        if (nextDate) {
+            followups.push({
+                id: Date.now(),
+                fileNo: followup.fileNo,
+                clientName: followup.clientName,
+                date: nextDate,
+                note: `متابعة مجددة: ${outcomeNotes}`,
+                assignedTo: followup.assignedTo,
+                status: "Pending"
+            });
+        }
+    } else {
+        // تحديث حالة العميل الأساسية بناءً على نتيجة الفولو أب
+        const client = clients.find(c => c.name === followup.clientName);
+        if (client) {
+            if (outcomeStatus === 'Booked') client.status = 'Closed/Won';
+            if (outcomeStatus === 'Lost') client.status = 'Lost';
+        }
+    }
+
+    saveLocalData();
+    bootstrap.Modal.getInstance(document.getElementById('completeFollowupModal')).hide();
+    initApp();
+});
+
+document.getElementById('addBookingForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const clientName = document.getElementById('bookingClientSelect').value;
+    const clientObj = clients.find(c => c.name === clientName);
+
     const newBooking = {
         id: Date.now(),
-        clientName: document.getElementById('bookingClientSelect').value,
+        fileNo: clientObj ? clientObj.fileNo : 'N/A',
+        clientName: clientName,
         details: document.getElementById('bookingDetails').value,
         amount: parseFloat(document.getElementById('bookingAmount').value),
         profit: parseFloat(document.getElementById('bookingProfit').value),
@@ -798,14 +863,11 @@ document.getElementById('addBookingForm').addEventListener('submit', async funct
     bookings.push(newBooking);
     saveLocalData();
 
-    try { await apiFetch('/api/bookings', { method: 'POST', body: JSON.stringify(newBooking) }); } catch (err) {}
-
     bootstrap.Modal.getInstance(document.getElementById('addBookingModal')).hide();
     document.getElementById('addBookingForm').reset();
     initApp();
 });
 
-// Change Password
 document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const curPass = document.getElementById('currentPassword').value;
@@ -845,7 +907,6 @@ function updateClientStatus(clientId, newStatus) {
     if (client) {
         client.status = newStatus;
         saveLocalData();
-        apiFetch(`/api/clients/${clientId}`, { method: 'PUT', body: JSON.stringify(client) });
     }
 }
 
@@ -858,6 +919,7 @@ function renderClients() {
     list.forEach(c => {
         tbody.innerHTML += `
             <tr>
+                <td><span class="badge bg-dark">${c.fileNo || 'N/A'}</span></td>
                 <td><strong>${c.name}</strong></td>
                 <td><span class="badge bg-secondary">${c.source || 'N/A'}</span></td>
                 <td>
@@ -891,15 +953,6 @@ function renderClients() {
     });
 }
 
-function completeFollowup(id) {
-    const followup = followups.find(f => f.id === id);
-    if (followup) {
-        followup.status = "Completed";
-        saveLocalData();
-        renderFollowups();
-    }
-}
-
 function renderFollowups() {
     const tbody = document.getElementById('followupsTableBody');
     if (!tbody) return;
@@ -907,17 +960,22 @@ function renderFollowups() {
     let list = currentUser.role === 'Sales' ? followups.filter(f => f.assignedTo === currentUser.email) : followups;
 
     list.forEach(f => {
+        let badgeClass = 'bg-warning text-dark';
+        if (f.status === 'Booked') badgeClass = 'bg-success';
+        if (f.status === 'Lost') badgeClass = 'bg-danger';
+        if (f.status === 'No Answer') badgeClass = 'bg-secondary';
+        if (f.status === 'Reschedule') badgeClass = 'bg-info text-dark';
+
         tbody.innerHTML += `
             <tr>
+                <td><span class="badge bg-dark">${f.fileNo || 'N/A'}</span></td>
                 <td><strong>${f.clientName}</strong></td>
                 <td>${f.date}</td>
                 <td>${f.note}</td>
                 <td>${f.assignedTo}</td>
+                <td><span class="badge ${badgeClass}">${f.status}</span></td>
                 <td>
-                    <span class="badge ${f.status === 'Completed' ? 'bg-success' : 'bg-warning text-dark'}">${f.status}</span>
-                </td>
-                <td>
-                    ${f.status !== 'Completed' ? `<button class="btn btn-sm btn-success" onclick="completeFollowup(${f.id})"><i class="fa-solid fa-check me-1"></i> Done</button>` : ''}
+                    ${f.status === 'Pending' ? `<button class="btn btn-sm btn-primary" onclick="openCompleteFollowupModal(${f.id})"><i class="fa-solid fa-tasks me-1"></i> Take Action</button>` : '<small class="text-muted">Completed</small>'}
                 </td>
             </tr>
         `;
@@ -933,6 +991,7 @@ function renderBookings() {
     list.forEach(b => {
         tbody.innerHTML += `
             <tr>
+                <td><span class="badge bg-dark">${b.fileNo || 'N/A'}</span></td>
                 <td><strong>${b.clientName}</strong></td>
                 <td>${b.details}</td>
                 <td>EGP ${b.amount ? b.amount.toLocaleString() : 0}</td>
@@ -1021,6 +1080,7 @@ function renderPendingDeletes() {
     pendingList.forEach(c => {
         tbody.innerHTML += `
             <tr>
+                <td><span class="badge bg-dark">${c.fileNo || 'N/A'}</span></td>
                 <td><strong>${c.name}</strong></td>
                 <td>${c.createdBy}</td>
                 <td>
@@ -1048,13 +1108,11 @@ async function confirmTransfer() {
         
         notifications.push({
             targetUser: newAgent,
-            text: `📢 Client transferred to you: <strong>${client.name}</strong> (Transferred by ${currentUser.email})`
+            text: `📢 Client transferred: [#${client.fileNo}] <strong>${client.name}</strong> (Transferred by ${currentUser.email})`
         });
 
         saveLocalData();
-        try { await apiFetch(`/api/clients/${id}`, { method: 'PUT', body: JSON.stringify(client) }); } catch (e) {}
-
-        alert(`Client '${client.name}' successfully transferred to ${newAgent}.\nNotification triggered!`);
+        alert(`Client '#${client.fileNo} - ${client.name}' successfully transferred to ${newAgent}.`);
     }
 
     bootstrap.Modal.getInstance(document.getElementById('transferModal')).hide();
@@ -1069,16 +1127,14 @@ async function requestDelete(id) {
         if (confirm("Are you sure you want to permanently delete this client?")) {
             clients = clients.filter(c => c.id !== id);
             saveLocalData();
-            try { await apiFetch(`/api/clients/${id}`, { method: 'DELETE' }); } catch (e) {}
         }
     } else {
         client.deleteRequested = true;
         notifications.push({
             targetUser: "asmaa.ashraf.1312002@gmail.com",
-            text: `Deletion requested for client: ${client.name} by ${currentUser.email}`
+            text: `Deletion requested for client: [#${client.fileNo}] ${client.name} by ${currentUser.email}`
         });
         saveLocalData();
-        try { await apiFetch(`/api/clients/${id}`, { method: 'PUT', body: JSON.stringify(client) }); } catch (e) {}
         alert("Deletion request sent to administrator for approval.");
     }
     initApp();
@@ -1087,7 +1143,6 @@ async function requestDelete(id) {
 async function approveDelete(id) {
     clients = clients.filter(c => c.id !== id);
     saveLocalData();
-    try { await apiFetch(`/api/clients/${id}`, { method: 'DELETE' }); } catch (e) {}
     renderPendingDeletes();
     initApp();
 }
@@ -1097,7 +1152,6 @@ async function rejectDelete(id) {
     if (client) {
         client.deleteRequested = false;
         saveLocalData();
-        try { await apiFetch(`/api/clients/${id}`, { method: 'PUT', body: JSON.stringify(client) }); } catch (e) {}
     }
     renderPendingDeletes();
     initApp();
