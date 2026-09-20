@@ -365,7 +365,6 @@
 <script>
 const API_BASE_URL = "https://roving-crm-backend.onrender.com";
 
-// 🔐 قائمة الحسابات مع كلمة سر مخصصة وفريدة لكل بريد إلكتروني
 const validUsers = [
     { email: "asmaa.ashraf.1312002@gmail.com", pass: "Asmaa@2026", role: "Admin", name: "Asmaa Ashraf" },
     { email: "ahmedashraf88513@gmail.com", pass: "AhmedA#88", role: "Admin", name: "Ahmed Ashraf" },
@@ -375,9 +374,17 @@ const validUsers = [
 
 let currentUser = null;
 let notifications = [];
-let clients = [];
-let followups = [];
-let bookings = [];
+
+// 💾 تحميل البيانات من LocalStorage عند الإقلاع لتجنب ضياع البيانات عند الريفريش
+let clients = JSON.parse(localStorage.getItem('crm_clients')) || [];
+let followups = JSON.parse(localStorage.getItem('crm_followups')) || [];
+let bookings = JSON.parse(localStorage.getItem('crm_bookings')) || [];
+
+function saveLocalData() {
+    localStorage.setItem('crm_clients', JSON.stringify(clients));
+    localStorage.setItem('crm_followups', JSON.stringify(followups));
+    localStorage.setItem('crm_bookings', JSON.stringify(bookings));
+}
 
 window.addEventListener('DOMContentLoaded', () => {
     const savedUser = localStorage.getItem('crm_user');
@@ -393,7 +400,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// 🛑 فحص مطابقة الإيميل مع كلمة السر الخاصة به تماماً
 document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -404,17 +410,14 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     errorDiv.classList.add('d-none');
     errorDiv.innerText = "";
 
-    // 1. البحث أولاً عن الحساب باستخدام البريد الإلكتروني
     const targetUser = validUsers.find(u => u.email.toLowerCase() === emailInput);
 
-    // 2. إذا لم يكن الإيميل موجوداً أو كلمة السر لا تطابق كلمة سر هذا الحساب المحددة
     if (!targetUser || targetUser.pass !== passwordInput) {
         errorDiv.innerText = "البريد الإلكتروني أو كلمة السر غير صحيحة!";
         errorDiv.classList.remove('d-none');
-        return; // إيقاف العملية ومنع الدخول نهائياً
+        return;
     }
 
-    // 3. التسجيل في حال تطابق كلمة السر المقترنة بالإيميل فقط
     currentUser = { email: targetUser.email, role: targetUser.role, name: targetUser.name };
     localStorage.setItem('crm_user', JSON.stringify(currentUser));
 
@@ -455,9 +458,19 @@ async function initApp() {
     }
 
     populateDropdowns();
+    
+    // جلب البيانات مع الحفاظ على البيانات المحفوظة محلياً
     await fetchClientsData();
     await fetchFollowupsData();
     await fetchBookingsData();
+
+    renderAllViews();
+}
+
+function renderAllViews() {
+    renderClients();
+    renderFollowups();
+    renderBookings();
     renderCommissions();
     renderReports();
     renderNotifications();
@@ -500,7 +513,13 @@ function populateDropdowns() {
 async function fetchClientsData() {
     try {
         const res = await apiFetch('/api/clients');
-        if (res.ok) clients = await res.json();
+        if (res.ok) {
+            const apiClients = await res.json();
+            if (Array.isArray(apiClients) && apiClients.length > 0) {
+                clients = apiClients;
+                saveLocalData();
+            }
+        }
     } catch (e) {}
     renderClients();
 }
@@ -508,7 +527,13 @@ async function fetchClientsData() {
 async function fetchFollowupsData() {
     try {
         const res = await apiFetch('/api/followups');
-        if (res.ok) followups = await res.json();
+        if (res.ok) {
+            const apiFollowups = await res.json();
+            if (Array.isArray(apiFollowups) && apiFollowups.length > 0) {
+                followups = apiFollowups;
+                saveLocalData();
+            }
+        }
     } catch (e) {}
     renderFollowups();
 }
@@ -516,7 +541,13 @@ async function fetchFollowupsData() {
 async function fetchBookingsData() {
     try {
         const res = await apiFetch('/api/bookings');
-        if (res.ok) bookings = await res.json();
+        if (res.ok) {
+            const apiBookings = await res.json();
+            if (Array.isArray(apiBookings) && apiBookings.length > 0) {
+                bookings = apiBookings;
+                saveLocalData();
+            }
+        }
     } catch (e) {}
     renderBookings();
 }
@@ -524,6 +555,7 @@ async function fetchBookingsData() {
 document.getElementById('addClientForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const newClient = {
+        id: Date.now(),
         name: document.getElementById('clientName').value,
         phone: document.getElementById('clientPhone').value,
         service: document.getElementById('clientService').value,
@@ -533,15 +565,10 @@ document.getElementById('addClientForm').addEventListener('submit', async functi
         deleteRequested: false
     };
 
-    try {
-        const res = await apiFetch('/api/clients', { method: 'POST', body: JSON.stringify(newClient) });
-        if (res.ok) {
-            const data = await res.json();
-            clients.push(data);
-        } else { clients.push({ ...newClient, id: Date.now() }); }
-    } catch (err) {
-        clients.push({ ...newClient, id: Date.now() });
-    }
+    clients.push(newClient);
+    saveLocalData(); // حفظ فوري محلياً
+
+    try { await apiFetch('/api/clients', { method: 'POST', body: JSON.stringify(newClient) }); } catch (err) {}
 
     bootstrap.Modal.getInstance(document.getElementById('addClientModal')).hide();
     document.getElementById('addClientForm').reset();
@@ -551,6 +578,7 @@ document.getElementById('addClientForm').addEventListener('submit', async functi
 document.getElementById('addBookingForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const newBooking = {
+        id: Date.now(),
         clientName: document.getElementById('bookingClientSelect').value,
         details: document.getElementById('bookingDetails').value,
         amount: parseFloat(document.getElementById('bookingAmount').value),
@@ -559,15 +587,10 @@ document.getElementById('addBookingForm').addEventListener('submit', async funct
         assignedTo: currentUser.email
     };
 
-    try {
-        const res = await apiFetch('/api/bookings', { method: 'POST', body: JSON.stringify(newBooking) });
-        if (res.ok) {
-            const data = await res.json();
-            bookings.push(data);
-        } else { bookings.push({ ...newBooking, id: Date.now() }); }
-    } catch (err) {
-        bookings.push({ ...newBooking, id: Date.now() });
-    }
+    bookings.push(newBooking);
+    saveLocalData(); // حفظ فوري محلياً
+
+    try { await apiFetch('/api/bookings', { method: 'POST', body: JSON.stringify(newBooking) }); } catch (err) {}
 
     bootstrap.Modal.getInstance(document.getElementById('addBookingModal')).hide();
     document.getElementById('addBookingForm').reset();
@@ -738,9 +761,8 @@ async function confirmTransfer() {
     const client = clients.find(c => c.id === id);
     if (client) {
         client.assignedTo = newAgent;
-        try {
-            await apiFetch(`/api/clients/${id}`, { method: 'PUT', body: JSON.stringify(client) });
-        } catch (e) {}
+        saveLocalData();
+        try { await apiFetch(`/api/clients/${id}`, { method: 'PUT', body: JSON.stringify(client) }); } catch (e) {}
     }
 
     bootstrap.Modal.getInstance(document.getElementById('transferModal')).hide();
@@ -754,14 +776,14 @@ async function requestDelete(id) {
     if (currentUser.role === 'Admin') {
         if (confirm("Are you sure you want to permanently delete this client?")) {
             clients = clients.filter(c => c.id !== id);
+            saveLocalData();
             try { await apiFetch(`/api/clients/${id}`, { method: 'DELETE' }); } catch (e) {}
         }
     } else {
         client.deleteRequested = true;
         notifications.push(`Deletion requested for client: ${client.name}`);
-        try {
-            await apiFetch(`/api/clients/${id}`, { method: 'PUT', body: JSON.stringify(client) });
-        } catch (e) {}
+        saveLocalData();
+        try { await apiFetch(`/api/clients/${id}`, { method: 'PUT', body: JSON.stringify(client) }); } catch (e) {}
         alert("Deletion request sent to administrator for approval.");
     }
     initApp();
@@ -769,6 +791,7 @@ async function requestDelete(id) {
 
 async function approveDelete(id) {
     clients = clients.filter(c => c.id !== id);
+    saveLocalData();
     try { await apiFetch(`/api/clients/${id}`, { method: 'DELETE' }); } catch (e) {}
     renderPendingDeletes();
     initApp();
@@ -778,9 +801,8 @@ async function rejectDelete(id) {
     const client = clients.find(c => c.id === id);
     if (client) {
         client.deleteRequested = false;
-        try {
-            await apiFetch(`/api/clients/${id}`, { method: 'PUT', body: JSON.stringify(client) });
-        } catch (e) {}
+        saveLocalData();
+        try { await apiFetch(`/api/clients/${id}`, { method: 'PUT', body: JSON.stringify(client) }); } catch (e) {}
     }
     renderPendingDeletes();
     initApp();
