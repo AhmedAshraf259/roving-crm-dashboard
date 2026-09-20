@@ -149,6 +149,7 @@
                 <a href="#" id="navBookings" onclick="switchTab('bookings')"><i class="fa-solid fa-receipt me-2"></i> Bookings</a>
                 <a href="#" id="navCommissions" onclick="switchTab('commissions')"><i class="fa-solid fa-hand-holding-dollar me-2"></i> Commissions</a>
                 <a href="#" id="navReports" onclick="switchTab('reports')"><i class="fa-solid fa-chart-line me-2"></i> Reports</a>
+                <a href="#" id="navSettings" onclick="switchTab('settings')"><i class="fa-solid fa-gear me-2"></i> Settings</a>
                 <a href="#" id="pendingDeleteNav" class="d-none text-warning" onclick="switchTab('pendingDeletes')">
                     <i class="fa-solid fa-shield-halved me-2"></i> Deletion Requests <span id="pendingBadge" class="badge bg-danger">0</span>
                 </a>
@@ -187,7 +188,10 @@
 
             <!-- Tab 2: Follow-ups -->
             <div id="tabFollowups" class="tab-content-item d-none">
-                <h2 class="fw-bold text-roving-green mb-4">Follow-ups & Tasks Schedule</h2>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold text-roving-green">Follow-ups & Tasks Schedule</h2>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFollowupModal"><i class="fa-solid fa-plus me-1"></i> Add Follow-up</button>
+                </div>
                 <div class="card card-custom p-3">
                     <div class="table-responsive">
                         <table class="table align-middle">
@@ -198,6 +202,7 @@
                                     <th>Notes</th>
                                     <th>Assigned Agent</th>
                                     <th>Status</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="followupsTableBody"></tbody>
@@ -285,7 +290,54 @@
                 </div>
             </div>
 
-            <!-- Tab 6: Pending Deletions (Admin Only) -->
+            <!-- Tab 6: Settings -->
+            <div id="tabSettings" class="tab-content-item d-none">
+                <h2 class="fw-bold text-roving-green mb-4">User & System Settings</h2>
+                
+                <div class="row g-4">
+                    <!-- Password Settings -->
+                    <div class="col-md-6">
+                        <div class="card card-custom p-4">
+                            <h5 class="fw-bold text-roving-green mb-3"><i class="fa-solid fa-key me-2"></i>Change Password</h5>
+                            <form id="changePasswordForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Current Password</label>
+                                    <input type="password" id="currentPassword" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">New Password</label>
+                                    <input type="password" id="newPassword" class="form-control" required minlength="6">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Confirm New Password</label>
+                                    <input type="password" id="confirmPassword" class="form-control" required minlength="6">
+                                </div>
+                                <div id="passwordAlert" class="alert d-none py-2" role="alert"></div>
+                                <button type="submit" class="btn btn-primary w-100">Update Password</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Transfer & System Preferences -->
+                    <div class="col-md-6">
+                        <div class="card card-custom p-4">
+                            <h5 class="fw-bold text-roving-green mb-3"><i class="fa-solid fa-bell me-2"></i>Notification Preferences</h5>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="notifTransferEmail" checked>
+                                <label class="form-check-label fw-semibold" for="notifTransferEmail">Send Email Alert on Client Transfer</label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="notifTransferApp" checked>
+                                <label class="form-check-label fw-semibold" for="notifTransferApp">In-App Notification on Client Transfer</label>
+                            </div>
+                            <hr>
+                            <p class="text-muted small">Notifications will be pushed directly to assigned sales agents when ownership of clients is updated.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 7: Pending Deletions (Admin Only) -->
             <div id="tabPendingDeletes" class="tab-content-item d-none">
                 <h2 class="fw-bold text-danger mb-4">Pending Deletion Requests</h2>
                 <div class="card card-custom p-3 border-danger">
@@ -318,8 +370,35 @@
                     <div class="mb-2"><label class="form-label">Client Name</label><input type="text" id="clientName" class="form-control" required></div>
                     <div class="mb-2"><label class="form-label">Phone</label><input type="tel" id="clientPhone" class="form-control" required></div>
                     <div class="mb-2"><label class="form-label">Service Required</label><input type="text" id="clientService" class="form-control" required></div>
+                    <div class="mb-2">
+                        <label class="form-label">Status</label>
+                        <select id="clientStatusSelect" class="form-select">
+                            <option value="New">New</option>
+                            <option value="Contacted">Contacted</option>
+                            <option value="Interested">Interested</option>
+                            <option value="Closed/Won">Closed/Won</option>
+                            <option value="Lost">Lost</option>
+                        </select>
+                    </div>
                     <div class="mb-3"><label class="form-label">Assign To</label><select id="clientAssignedTo" class="form-select" required></select></div>
                     <button type="submit" class="btn btn-primary w-100">Save Client</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Follow-up -->
+<div class="modal fade" id="addFollowupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title fw-bold text-roving-green">Add Follow-up Task</h5></div>
+            <div class="modal-body">
+                <form id="addFollowupForm">
+                    <div class="mb-2"><label class="form-label">Select Client</label><select id="followupClientSelect" class="form-select" required></select></div>
+                    <div class="mb-2"><label class="form-label">Follow-up Date</label><input type="date" id="followupDate" class="form-control" required></div>
+                    <div class="mb-3"><label class="form-label">Notes / Instructions</label><textarea id="followupNotes" class="form-control" rows="3" required></textarea></div>
+                    <button type="submit" class="btn btn-primary w-100">Schedule Follow-up</button>
                 </form>
             </div>
         </div>
@@ -365,7 +444,8 @@
 <script>
 const API_BASE_URL = "https://roving-crm-backend.onrender.com";
 
-const validUsers = [
+// تحميل أو تهيئة قائمة المستخدمين
+let validUsers = JSON.parse(localStorage.getItem('crm_users')) || [
     { email: "asmaa.ashraf.1312002@gmail.com", pass: "Asmaa@2026", role: "Admin", name: "Asmaa Ashraf" },
     { email: "ahmedashraf88513@gmail.com", pass: "AhmedA#88", role: "Admin", name: "Ahmed Ashraf" },
     { email: "ahmedwanas11@gmail.com", pass: "Wanas!Pass2026", role: "Admin", name: "Ahmed Wanas" },
@@ -373,9 +453,9 @@ const validUsers = [
 ];
 
 let currentUser = null;
-let notifications = [];
+let notifications = JSON.parse(localStorage.getItem('crm_notifications')) || [];
 
-// 💾 تحميل البيانات من LocalStorage عند الإقلاع لتجنب ضياع البيانات عند الريفريش
+// 💾 تحميل البيانات من LocalStorage عند الإقلاع
 let clients = JSON.parse(localStorage.getItem('crm_clients')) || [];
 let followups = JSON.parse(localStorage.getItem('crm_followups')) || [];
 let bookings = JSON.parse(localStorage.getItem('crm_bookings')) || [];
@@ -384,6 +464,8 @@ function saveLocalData() {
     localStorage.setItem('crm_clients', JSON.stringify(clients));
     localStorage.setItem('crm_followups', JSON.stringify(followups));
     localStorage.setItem('crm_bookings', JSON.stringify(bookings));
+    localStorage.setItem('crm_users', JSON.stringify(validUsers));
+    localStorage.setItem('crm_notifications', JSON.stringify(notifications));
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -418,7 +500,7 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
         return;
     }
 
-    currentUser = { email: targetUser.email, role: targetUser.role, name: targetUser.name };
+    currentUser = { email: targetUser.email, role: targetUser.role, name: targetUser.name, pass: targetUser.pass };
     localStorage.setItem('crm_user', JSON.stringify(currentUser));
 
     document.getElementById('loginSection').classList.add('d-none');
@@ -459,7 +541,6 @@ async function initApp() {
 
     populateDropdowns();
     
-    // جلب البيانات مع الحفاظ على البيانات المحفوظة محلياً
     await fetchClientsData();
     await fetchFollowupsData();
     await fetchBookingsData();
@@ -485,6 +566,7 @@ function switchTab(tabName) {
     if (tabName === 'bookings') { document.getElementById('tabBookings').classList.remove('d-none'); document.getElementById('navBookings').classList.add('active'); }
     if (tabName === 'commissions') { document.getElementById('tabCommissions').classList.remove('d-none'); document.getElementById('navCommissions').classList.add('active'); }
     if (tabName === 'reports') { document.getElementById('tabReports').classList.remove('d-none'); document.getElementById('navReports').classList.add('active'); }
+    if (tabName === 'settings') { document.getElementById('tabSettings').classList.remove('d-none'); document.getElementById('navSettings').classList.add('active'); }
     if (tabName === 'pendingDeletes') { document.getElementById('tabPendingDeletes').classList.remove('d-none'); document.getElementById('pendingDeleteNav').classList.add('active'); renderPendingDeletes(); }
 }
 
@@ -492,10 +574,12 @@ function populateDropdowns() {
     const addSelect = document.getElementById('clientAssignedTo');
     const transferSelect = document.getElementById('transferSelectUser');
     const bookingClientSelect = document.getElementById('bookingClientSelect');
+    const followupClientSelect = document.getElementById('followupClientSelect');
     
     if (addSelect) addSelect.innerHTML = ''; 
     if (transferSelect) transferSelect.innerHTML = ''; 
     if (bookingClientSelect) bookingClientSelect.innerHTML = '';
+    if (followupClientSelect) followupClientSelect.innerHTML = '';
 
     validUsers.forEach(emp => {
         if (addSelect) addSelect.innerHTML += `<option value="${emp.email}">${emp.name}</option>`;
@@ -504,9 +588,10 @@ function populateDropdowns() {
         }
     });
 
-    let filteredClients = currentUser.role === 'Sales' ? clients.filter(c => c.assignedTo === currentUser.email) : clients;
+    let filteredClients = currentUser.role === 'Sales' ? clients.filter(c => c.assignedTo === currentUser.email || c.createdBy === currentUser.email) : clients;
     filteredClients.forEach(c => {
         if (bookingClientSelect) bookingClientSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+        if (followupClientSelect) followupClientSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
     });
 }
 
@@ -561,17 +646,38 @@ document.getElementById('addClientForm').addEventListener('submit', async functi
         service: document.getElementById('clientService').value,
         assignedTo: document.getElementById('clientAssignedTo').value,
         createdBy: currentUser.email,
-        status: "New",
+        status: document.getElementById('clientStatusSelect').value || "New",
         deleteRequested: false
     };
 
     clients.push(newClient);
-    saveLocalData(); // حفظ فوري محلياً
+    saveLocalData();
 
     try { await apiFetch('/api/clients', { method: 'POST', body: JSON.stringify(newClient) }); } catch (err) {}
 
     bootstrap.Modal.getInstance(document.getElementById('addClientModal')).hide();
     document.getElementById('addClientForm').reset();
+    initApp();
+});
+
+document.getElementById('addFollowupForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const newFollowup = {
+        id: Date.now(),
+        clientName: document.getElementById('followupClientSelect').value,
+        date: document.getElementById('followupDate').value,
+        note: document.getElementById('followupNotes').value,
+        assignedTo: currentUser.email,
+        status: "Pending"
+    };
+
+    followups.push(newFollowup);
+    saveLocalData();
+
+    try { await apiFetch('/api/followups', { method: 'POST', body: JSON.stringify(newFollowup) }); } catch (err) {}
+
+    bootstrap.Modal.getInstance(document.getElementById('addFollowupModal')).hide();
+    document.getElementById('addFollowupForm').reset();
     initApp();
 });
 
@@ -588,7 +694,7 @@ document.getElementById('addBookingForm').addEventListener('submit', async funct
     };
 
     bookings.push(newBooking);
-    saveLocalData(); // حفظ فوري محلياً
+    saveLocalData();
 
     try { await apiFetch('/api/bookings', { method: 'POST', body: JSON.stringify(newBooking) }); } catch (err) {}
 
@@ -596,6 +702,51 @@ document.getElementById('addBookingForm').addEventListener('submit', async funct
     document.getElementById('addBookingForm').reset();
     initApp();
 });
+
+// Change Password Handler
+document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const curPass = document.getElementById('currentPassword').value;
+    const newPass = document.getElementById('newPassword').value;
+    const confPass = document.getElementById('confirmPassword').value;
+    const alertDiv = document.getElementById('passwordAlert');
+
+    alertDiv.className = "alert py-2";
+
+    const userObj = validUsers.find(u => u.email.toLowerCase() === currentUser.email.toLowerCase());
+
+    if (userObj.pass !== curPass) {
+        alertDiv.classList.add('alert-danger');
+        alertDiv.innerText = "Current password is incorrect!";
+        alertDiv.classList.remove('d-none');
+        return;
+    }
+
+    if (newPass !== confPass) {
+        alertDiv.classList.add('alert-danger');
+        alertDiv.innerText = "New passwords do not match!";
+        alertDiv.classList.remove('d-none');
+        return;
+    }
+
+    userObj.pass = newPass;
+    currentUser.pass = newPass;
+    saveLocalData();
+
+    alertDiv.classList.add('alert-success');
+    alertDiv.innerText = "Password updated successfully!";
+    alertDiv.classList.remove('d-none');
+    document.getElementById('changePasswordForm').reset();
+});
+
+function updateClientStatus(clientId, newStatus) {
+    const client = clients.find(c => c.id === clientId);
+    if (client) {
+        client.status = newStatus;
+        saveLocalData();
+        apiFetch(`/api/clients/${clientId}`, { method: 'PUT', body: JSON.stringify(client) });
+    }
+}
 
 function renderClients() {
     const tbody = document.getElementById('clientsTableBody');
@@ -611,7 +762,15 @@ function renderClients() {
                 <td>${c.service}</td>
                 <td><small class="text-muted">${c.createdBy}</small></td>
                 <td><span class="badge bg-light text-dark border">${c.assignedTo}</span></td>
-                <td><span class="badge bg-success">${c.status}</span></td>
+                <td>
+                    <select class="form-select form-select-sm" onchange="updateClientStatus(${c.id}, this.value)">
+                        <option value="New" ${c.status === 'New' ? 'selected' : ''}>New</option>
+                        <option value="Contacted" ${c.status === 'Contacted' ? 'selected' : ''}>Contacted</option>
+                        <option value="Interested" ${c.status === 'Interested' ? 'selected' : ''}>Interested</option>
+                        <option value="Closed/Won" ${c.status === 'Closed/Won' ? 'selected' : ''}>Closed/Won</option>
+                        <option value="Lost" ${c.status === 'Lost' ? 'selected' : ''}>Lost</option>
+                    </select>
+                </td>
                 <td>
                     ${c.deleteRequested ? '<span class="badge bg-warning text-dark">Deletion Pending</span>' : `
                         <button class="btn btn-sm btn-outline-warning" onclick="openTransferModal(${c.id})"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
@@ -621,6 +780,15 @@ function renderClients() {
             </tr>
         `;
     });
+}
+
+function completeFollowup(id) {
+    const followup = followups.find(f => f.id === id);
+    if (followup) {
+        followup.status = "Completed";
+        saveLocalData();
+        renderFollowups();
+    }
 }
 
 function renderFollowups() {
@@ -636,7 +804,12 @@ function renderFollowups() {
                 <td>${f.date}</td>
                 <td>${f.note}</td>
                 <td>${f.assignedTo}</td>
-                <td><span class="badge bg-warning text-dark">${f.status}</span></td>
+                <td>
+                    <span class="badge ${f.status === 'Completed' ? 'bg-success' : 'bg-warning text-dark'}">${f.status}</span>
+                </td>
+                <td>
+                    ${f.status !== 'Completed' ? `<button class="btn btn-sm btn-success" onclick="completeFollowup(${f.id})"><i class="fa-solid fa-check me-1"></i> Done</button>` : ''}
+                </td>
             </tr>
         `;
     });
@@ -712,16 +885,19 @@ function renderNotifications() {
     const notifBadge = document.getElementById('notifBadge');
     if (!notifList) return;
     
+    // فلترة الإشعارات التابعة لليوزر الحالي
+    const userNotifs = notifications.filter(n => n.targetUser === currentUser.email || !n.targetUser);
+    
     notifList.innerHTML = '';
-    notifBadge.innerText = notifications.length;
+    notifBadge.innerText = userNotifs.length;
 
-    if (notifications.length === 0) {
+    if (userNotifs.length === 0) {
         notifList.innerHTML = '<small class="text-muted">No notifications</small>';
         return;
     }
 
-    notifications.forEach(n => {
-        notifList.innerHTML += `<div class="notif-item">${n}</div>`;
+    userNotifs.forEach(n => {
+        notifList.innerHTML += `<div class="notif-item">${n.text}</div>`;
     });
 }
 
@@ -760,9 +936,19 @@ async function confirmTransfer() {
 
     const client = clients.find(c => c.id === id);
     if (client) {
+        const oldOwner = client.assignedTo;
         client.assignedTo = newAgent;
+        
+        // إضافة إشعار ينزل في الحساب الخاص بـ Agent المستلم مباشرة
+        notifications.push({
+            targetUser: newAgent,
+            text: `📢 Client transferred to you: <strong>${client.name}</strong> (Transferred by ${currentUser.email})`
+        });
+
         saveLocalData();
         try { await apiFetch(`/api/clients/${id}`, { method: 'PUT', body: JSON.stringify(client) }); } catch (e) {}
+
+        alert(`Client '${client.name}' successfully transferred to ${newAgent}.\nNotification triggered!`);
     }
 
     bootstrap.Modal.getInstance(document.getElementById('transferModal')).hide();
@@ -781,7 +967,10 @@ async function requestDelete(id) {
         }
     } else {
         client.deleteRequested = true;
-        notifications.push(`Deletion requested for client: ${client.name}`);
+        notifications.push({
+            targetUser: "asmaa.ashraf.1312002@gmail.com",
+            text: `Deletion requested for client: ${client.name} by ${currentUser.email}`
+        });
         saveLocalData();
         try { await apiFetch(`/api/clients/${id}`, { method: 'PUT', body: JSON.stringify(client) }); } catch (e) {}
         alert("Deletion request sent to administrator for approval.");
