@@ -81,6 +81,13 @@
             border-bottom: 1px solid #2D4A38; 
             padding: 8px 0; 
             color: #E2E8F0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .notif-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding-left: 5px;
         }
 
         .login-card { 
@@ -133,10 +140,15 @@
 
             <!-- Notifications Drawer -->
             <div class="mb-3">
-                <button class="btn btn-outline-light w-100 position-relative d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#notifCollapse">
-                    <span><i class="fa-solid fa-bell text-roving-orange me-2"></i> Notifications</span>
-                    <span id="notifBadge" class="badge bg-danger rounded-pill">0</span>
-                </button>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <button class="btn btn-outline-light w-100 position-relative d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#notifCollapse">
+                        <span><i class="fa-solid fa-bell text-roving-orange me-2"></i> Notifications</span>
+                        <span id="notifBadge" class="badge bg-danger rounded-pill">0</span>
+                    </button>
+                </div>
+                <div class="text-end mt-1">
+                    <small role="button" class="text-warning text-decoration-underline" onclick="markAllNotificationsAsRead()" style="font-size: 0.75rem;">قراءة الكل (Mark all read)</small>
+                </div>
                 <div class="collapse mt-2" id="notifCollapse">
                     <div class="notif-box text-light" id="notifList">
                         <small class="text-muted">No notifications</small>
@@ -430,9 +442,7 @@
                         <div class="card card-custom p-4 border-warning">
                             <h5 class="fw-bold text-roving-orange mb-3"><i class="fa-solid fa-percent me-2"></i>إدارة عمولات الموظفين (Admin Commissions)</h5>
                             <p class="text-muted small">حدد نسبة العمولة المئوية لكل يوزر على أرباح الحجوزات الخاصة به.</p>
-                            <div id="adminCommissionListContainer">
-                                <!-- Dynamically filled -->
-                            </div>
+                            <div id="adminCommissionListContainer"></div>
                             <button type="button" class="btn btn-success w-100 mt-3" onclick="saveUserCommissionsConfig()">حفظ إعدادات العمولات</button>
                         </div>
                     </div>
@@ -800,10 +810,10 @@ function checkTodayFollowups() {
         const fileNum = clientObj ? clientObj.fileNo : 'N/A';
         
         const notifText = `📞 تنبيه فولو أب اليوم للملف (#${fileNum}) - العميل: <strong>${task.clientName}</strong>`;
-        const exists = notifications.some(n => n.targetUser === currentUser.email && n.text === notifText);
+        const exists = notifications.some(n => n.targetUser === currentUser.email && n.text === notifText && !n.isRead);
 
         if (!exists) {
-            notifications.push({ targetUser: currentUser.email, text: notifText });
+            notifications.push({ id: Date.now() + Math.random(), targetUser: currentUser.email, text: notifText, isRead: false });
         }
     });
     saveLocalData();
@@ -1339,7 +1349,6 @@ function renderReports() {
         filteredBookings = filteredBookings.filter(b => b.createdAt && b.createdAt.startsWith(activeDateVal));
     }
 
-    // Basic KPIs
     let totalClientsCount = filteredClients.length;
     let totalBookingsCount = filteredBookings.length;
     let totalSellingAmount = filteredBookings.reduce((sum, b) => sum + (b.amount || 0), 0);
@@ -1350,7 +1359,6 @@ function renderReports() {
     document.getElementById('reportTotalSelling').innerText = "EGP " + totalSellingAmount.toLocaleString();
     document.getElementById('reportTotalProfit').innerText = "EGP " + totalProfitAmount.toLocaleString();
 
-    // Advanced Productivity & Problem Solving Analytics
     const conversionRate = totalClientsCount > 0 ? ((totalBookingsCount / totalClientsCount) * 100).toFixed(1) : 0;
     document.getElementById('reportConversionRate').innerText = conversionRate + "%";
 
@@ -1361,7 +1369,6 @@ function renderReports() {
     const inactiveCount = filteredClients.filter(c => c.status === 'Lost' || c.status === 'New').length;
     document.getElementById('reportInactiveLeads').innerText = inactiveCount;
 
-    // Render Charts
     renderPerformanceChart(filteredBookings, periodType);
     renderLeadStatusChart(filteredClients);
 }
@@ -1398,24 +1405,11 @@ function renderPerformanceChart(bookingsList, periodType) {
         data: {
             labels: labels,
             datasets: [
-                {
-                    label: 'إجمالي البيع (Selling Price)',
-                    data: sellingData,
-                    backgroundColor: '#D94A26',
-                    borderRadius: 6
-                },
-                {
-                    label: 'صافي الربح (Net Profit)',
-                    data: profitData,
-                    backgroundColor: '#203A2B',
-                    borderRadius: 6
-                }
+                { label: 'إجمالي البيع (Selling Price)', data: sellingData, backgroundColor: '#D94A26', borderRadius: 6 },
+                { label: 'صافي الربح (Net Profit)', data: profitData, backgroundColor: '#203A2B', borderRadius: 6 }
             ]
         },
-        options: {
-            responsive: true,
-            plugins: { legend: { position: 'top' } }
-        }
+        options: { responsive: true, plugins: { legend: { position: 'top' } } }
     });
 }
 
@@ -1442,10 +1436,7 @@ function renderLeadStatusChart(clientsList) {
                 backgroundColor: ['#3498DB', '#F39C12', '#9B59B6', '#2ECC71', '#E74C3C']
             }]
         },
-        options: {
-            responsive: true,
-            plugins: { legend: { position: 'bottom' } }
-        }
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
     });
 }
 
@@ -1458,9 +1449,7 @@ function renderAdminCommissionSettings() {
     validUsers.forEach((u, idx) => {
         container.innerHTML += `
             <div class="mb-2 d-flex justify-content-between align-items-center border-bottom pb-2">
-                <div>
-                    <strong>${u.name}</strong> <small class="text-muted">(${u.role})</small>
-                </div>
+                <div><strong>${u.name}</strong> <small class="text-muted">(${u.role})</small></div>
                 <div style="width: 120px;">
                     <div class="input-group input-group-sm">
                         <input type="number" class="form-control user-comm-input" data-email="${u.email}" value="${u.commissionRate || 10}" min="0" max="100">
@@ -1478,9 +1467,7 @@ function saveUserCommissionsConfig() {
         const email = inp.getAttribute('data-email');
         const val = parseFloat(inp.value) || 0;
         const targetUsr = validUsers.find(u => u.email === email);
-        if (targetUsr) {
-            targetUsr.commissionRate = val;
-        }
+        if (targetUsr) { targetUsr.commissionRate = val; }
     });
     saveLocalData();
     alert("تم تحديث نسب العمولات بنجاح!");
@@ -1689,7 +1676,8 @@ function renderNotifications() {
     const notifBadge = document.getElementById('notifBadge');
     if (!notifList) return;
     
-    const userNotifs = notifications.filter(n => n.targetUser === currentUser.email || !n.targetUser);
+    // فلترة الإشعارات الخاصة باليوزر الحالي وغير المقروءة فقط
+    const userNotifs = notifications.filter(n => (n.targetUser === currentUser.email || !n.targetUser) && !n.isRead);
     
     notifList.innerHTML = '';
     notifBadge.innerText = userNotifs.length;
@@ -1700,8 +1688,27 @@ function renderNotifications() {
     }
 
     userNotifs.forEach(n => {
-        notifList.innerHTML += `<div class="notif-item">${n.text}</div>`;
+        notifList.innerHTML += `<div class="notif-item" onclick="markNotificationAsRead(${n.id})" title="اضغط لتعليمه كمقروء">${n.text} <small class="text-warning float-end">✔</small></div>`;
     });
+}
+
+function markNotificationAsRead(notifId) {
+    const notif = notifications.find(n => n.id === notifId);
+    if (notif) {
+        notif.isRead = true;
+        saveLocalData();
+        renderNotifications();
+    }
+}
+
+function markAllNotificationsAsRead() {
+    notifications.forEach(n => {
+        if (n.targetUser === currentUser.email || !n.targetUser) {
+            n.isRead = true;
+        }
+    });
+    saveLocalData();
+    renderNotifications();
 }
 
 function renderPendingDeletes() {
@@ -1743,8 +1750,10 @@ async function confirmTransfer() {
         client.assignedTo = newAgent;
         
         notifications.push({
+            id: Date.now() + Math.random(),
             targetUser: newAgent,
-            text: `📢 Client transferred: [#${client.fileNo}] <strong>${client.name}</strong> (Transferred by ${currentUser.email})`
+            text: `📢 Client transferred: [#${client.fileNo}] <strong>${client.name}</strong> (Transferred by ${currentUser.email})`,
+            isRead: false
         });
 
         saveLocalData();
@@ -1767,8 +1776,10 @@ async function requestDelete(id) {
     } else {
         client.deleteRequested = true;
         notifications.push({
+            id: Date.now() + Math.random(),
             targetUser: "asmaa.ashraf.1312002@gmail.com",
-            text: `Deletion requested for client: [#${client.fileNo}] ${client.name} by ${currentUser.email}`
+            text: `Deletion requested for client: [#${client.fileNo}] ${client.name} by ${currentUser.email}`,
+            isRead: false
         });
         saveLocalData();
         alert("Deletion request sent to administrator for approval.");
