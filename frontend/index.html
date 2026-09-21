@@ -15,12 +15,12 @@
 
     <style>
         :root {
-    --roving-green: #293E35;      /* أخضر داكن فخم مستوحى من حروف ROV */
-    --roving-dark-green: #1A2822; /* أخضر شديد الدتمة للقوائم والخلفيات الخاصة */
-    --roving-orange: #D45B38;     /* برتقالي ترابي دافئ مستوحى من الطائرة وحرف V */
-    --roving-light-orange: #E67E55; /* درجة برتقالية أفتح للتنبيهات والعناصر الثانوية */
-    --roving-bg: #F4F1EA;         /* خلفية كريمية هادئة (Off-white) مريحة جداً للعين أثناء العمل الطويل */
-}
+            --roving-green: #293E35;      /* أخضر داكن فخم مستوحى من حروف ROV */
+            --roving-dark-green: #1A2822; /* أخضر شديد الدتمة للقوائم والخلفيات الخاصة */
+            --roving-orange: #D45B38;     /* برتقالي ترابي دافئ مستوحى من الطائرة وحرف V */
+            --roving-light-orange: #E67E55; /* درجة برتقالية أفتح للتنبيهات والعناصر الثانوية */
+            --roving-bg: #F4F1EA;         /* خلفية كريمية هادئة (Off-white) مريحة جداً للعين أثناء العمل الطويل */
+        }
 
         body { 
             background-color: var(--roving-bg); 
@@ -34,10 +34,27 @@
             font-family: 'Inter', sans-serif;
         }
 
+        /* تنسيق وحركة القائمة الجانبية الانسيابية */
         .sidebar { 
             min-height: 100vh; 
             background: var(--roving-green); 
             color: #ffffff; 
+            transition: all 0.3s ease-in-out;
+            position: relative;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .sidebar.collapsed {
+            margin-left: -16.666667%; /* إخفاء عرض القائمة بالكامل للشاشات الكبيرة */
+            opacity: 0;
+            padding: 0 !important;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar.collapsed {
+                margin-left: -100%;
+            }
         }
 
         .sidebar a { 
@@ -127,7 +144,6 @@
 <div id="loginSection" class="container">
     <div class="card login-card p-4">
         <div class="text-center mb-4">
-            <!-- تم إضافة اللوجو هنا بجانب عنوان روفينج سي ار ام -->
             <div class="d-flex justify-content-center align-items-center mb-2">
                 <img src="WhatsApp Image 2026-09-18 at 7.42.23 PM_2.jpeg" alt="Roving Logo" style="height: 45px; object-fit: contain;" class="me-2 rounded">
                 <h3 class="fw-bold text-roving-orange m-0">Roving Travel</h3>
@@ -153,13 +169,18 @@
 <div id="appSection" class="container-fluid d-none">
     <div class="row">
         <!-- Sidebar Navigation -->
-        <div class="col-md-2 sidebar p-3">
-            <!-- تم إضافة اللوجو هنا أيضاً في القائمة الجانبية فوق كلمة روفينج سي ار ام -->
-            <div class="text-center my-3">
-                <img src="WhatsApp Image 2026-09-18 at 7.42.23 PM_2.jpeg" alt="Roving Logo" style="height: 40px; object-fit: contain;" class="mb-2 rounded d-block mx-auto">
-                <h4 class="text-roving-orange fw-bold m-0" style="font-size: 1.1rem;">Roving CRM</h4>
+        <div class="col-md-2 sidebar p-3" id="sidebarContainer">
+            <div class="d-flex justify-content-between align-items-center my-2">
+                <div class="d-flex align-items-center">
+                    <img src="WhatsApp Image 2026-09-18 at 7.42.23 PM_2.jpeg" alt="Roving Logo" style="height: 32px; object-fit: contain;" class="me-2 rounded">
+                    <h4 class="text-roving-orange fw-bold m-0" style="font-size: 1rem;">Roving CRM</h4>
+                </div>
+                <!-- زرار إخفاء القائمة الجانبية -->
+                <button class="btn btn-sm btn-outline-light" onclick="toggleSidebar()" title="إخفاء القائمة">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
             </div>
-            <hr class="border-secondary">
+            <hr class="border-secondary my-2">
             
             <div class="mb-3 text-center bg-dark p-2 rounded bg-opacity-25">
                 <small class="text-light opacity-75 d-block">Current User:</small>
@@ -189,7 +210,6 @@
             <nav class="mt-3">
                 <a href="#" id="navClients" class="active" onclick="switchTab('clients')"><i class="fa-solid fa-users me-2"></i> Clients</a>
                 
-                <!-- زر الفولو أب مع عداد العملاء الذين لديهم فولو أب اليوم -->
                 <a href="#" id="navFollowups" onclick="switchTab('followups')" class="d-flex justify-content-between align-items-center">
                     <span><i class="fa-solid fa-phone-volume me-2"></i> Follow-ups</span>
                     <span id="sidebarTodayFollowupBadge" class="badge bg-danger rounded-pill">0</span>
@@ -212,8 +232,13 @@
         </div>
 
         <!-- Main Dashboard View -->
-        <div class="col-md-10 p-4">
+        <div class="col-md-10 p-4" id="mainContentArea">
             
+            <!-- زرار خارجي يظهر لإعادة فتح القائمة إذا تم إغلاقها -->
+            <button class="btn btn-outline-dark mb-3 d-none fw-bold shadow-sm" id="showSidebarBtn" onclick="toggleSidebar()">
+                <i class="fa-solid fa-bars me-2 text-roving-orange"></i> إظهار القائمة الجانبية
+            </button>
+
             <!-- Tab 1: Clients -->
             <div id="tabClients" class="tab-content-item">
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -348,7 +373,6 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="fw-bold text-roving-green"><i class="fa-solid fa-chart-line me-2"></i>Performance & Analytics Reports</h2>
                     
-                    <!-- Admin User Filter Selector -->
                     <div id="adminReportFilterContainer" class="d-none">
                         <select id="reportUserSelect" class="form-select border-primary" onchange="renderReports()">
                             <option value="ALL">-- جميع الموظفين (All Team) --</option>
@@ -356,7 +380,6 @@
                     </div>
                 </div>
 
-                <!-- Report Period Filters -->
                 <div class="card card-custom p-3 mb-4 bg-light">
                     <div class="row g-3 align-items-center">
                         <div class="col-md-3">
@@ -375,7 +398,6 @@
                     </div>
                 </div>
 
-                <!-- KPI Summary Cards -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-3">
                         <div class="card card-custom p-3 text-center border-start border-4 border-primary">
@@ -403,7 +425,6 @@
                     </div>
                 </div>
 
-                <!-- Advanced Client & Productivity Insights Cards -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
                         <div class="card card-custom p-3 border-start border-4 border-info">
@@ -428,7 +449,6 @@
                     </div>
                 </div>
 
-                <!-- Charts Section -->
                 <div class="row g-4">
                     <div class="col-md-8">
                         <div class="card card-custom p-4">
@@ -449,7 +469,6 @@
             <div id="tabSettings" class="tab-content-item d-none">
                 <h2 class="fw-bold text-roving-green mb-4">User & System Settings</h2>
                 <div class="row g-4">
-                    <!-- Change Password -->
                     <div class="col-md-6">
                         <div class="card card-custom p-4">
                             <h5 class="fw-bold text-roving-green mb-3"><i class="fa-solid fa-key me-2"></i>Change Password</h5>
@@ -472,7 +491,6 @@
                         </div>
                     </div>
 
-                    <!-- Admin Commission Manager -->
                     <div class="col-md-6" id="adminCommissionSettingsCard">
                         <div class="card card-custom p-4 border-warning">
                             <h5 class="fw-bold text-roving-orange mb-3"><i class="fa-solid fa-percent me-2"></i>إدارة عمولات الموظفين (Admin Commissions)</h5>
@@ -482,7 +500,6 @@
                         </div>
                     </div>
 
-                    <!-- Admin User Management Card -->
                     <div class="col-md-12" id="adminUserManagementCard" style="display: none;">
                         <div class="card card-custom p-4 border-danger">
                             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -495,7 +512,7 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th>الاسم</th>
-                                            <th>البريد الإلكتروني (جيميل/أووتلوك)</th>
+                                            <th>البريد الإلكتروني</th>
                                             <th>الدور (Role)</th>
                                             <th>نسبة العمولة</th>
                                             <th>الإجراءات</th>
@@ -556,7 +573,7 @@
     </div>
 </div>
 
-<!-- Modal: Add New User (Admin Feature) -->
+<!-- Modal: Add New User -->
 <div class="modal fade" id="addUserModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -571,8 +588,8 @@
                         <input type="text" id="newUserName" class="form-control" placeholder="مثال: Mohamed Ali" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">البريد الإلكتروني (Gmail / Outlook / Any)</label>
-                        <input type="email" id="newUserEmail" class="form-control" placeholder="user@gmail.com أو outlook.com" required>
+                        <label class="form-label fw-semibold">البريد الإلكتروني</label>
+                        <input type="email" id="newUserEmail" class="form-control" placeholder="user@gmail.com" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">كلمة السر (Password)</label>
@@ -615,7 +632,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Lead Source (جهة الوصول) <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold">Lead Source <span class="text-danger">*</span></label>
                             <select id="clientSource" class="form-select" required>
                                 <option value="" disabled selected>-- Select Source --</option>
                                 <option value="Facebook">Facebook</option>
@@ -655,7 +672,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label">Passport Number (رقم الباسبور)</label>
+                            <label class="form-label">Passport Number</label>
                             <input type="text" id="clientPassportNum" class="form-control" placeholder="A12345678">
                         </div>
 
@@ -665,8 +682,8 @@
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label fw-semibold">Client Details & Notes (تفاصيل العميل وتفضيلاته)</label>
-                            <textarea id="clientNotes" class="form-control" rows="3" placeholder="اكتب التفاصيل الخاصة بالعميل، اهتماماته، أو ملاحظات الرحلة..."></textarea>
+                            <label class="form-label fw-semibold">Client Details & Notes</label>
+                            <textarea id="clientNotes" class="form-control" rows="3" placeholder="ملاحظات تفصيلية..."></textarea>
                         </div>
                     </div>
 
@@ -689,19 +706,12 @@
                     <input type="hidden" id="editingFollowupId" value="">
                     <div class="mb-3">
                         <label class="form-label fw-semibold">اختر العميل (ابحث بالاسم أو رقم الملف)</label>
-                        <input type="text" id="followupClientSearchInput" class="form-control mb-1" placeholder="اكتب للبحث السريع (اسم أو رقم الملف)..." oninput="filterFollowupClientsList()">
+                        <input type="text" id="followupClientSearchInput" class="form-control mb-1" placeholder="ابحث..." oninput="filterFollowupClientsList()">
                         <select id="followupClientSelect" class="form-select" size="5" required style="max-height: 160px;"></select>
                     </div>
                     <div class="mb-2"><label class="form-label">Follow-up Date</label><input type="date" id="followupDate" class="form-control" required></div>
                     <div class="mb-3"><label class="form-label">Notes / Instructions</label><textarea id="followupNotes" class="form-control" rows="3" required></textarea></div>
                     
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="sendEmailNotifCheck" checked>
-                        <label class="form-check-label small" for="sendEmailNotifCheck">
-                            إرسال تفاصيل الفولو أب إلى البريد المسجل للموظف (Gmail / Outlook)
-                        </label>
-                    </div>
-
                     <button type="submit" class="btn btn-primary w-100" id="saveFollowupBtn">Schedule Follow-up</button>
                 </form>
             </div>
@@ -718,7 +728,7 @@
                 <form id="completeFollowupForm">
                     <input type="hidden" id="completingFollowupId">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">نتيجة المتابعة (اختر الحالة)</label>
+                        <label class="form-label fw-semibold">نتيجة المتابعة</label>
                         <select id="followupOutcomeStatus" class="form-select" required onchange="toggleRescheduleField(this.value)">
                             <option value="Booked">حجز (Booked)</option>
                             <option value="Lost">فقد (Lost)</option>
@@ -735,8 +745,8 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">ملاحظات ما تم التوصل إليه (Notes)</label>
-                        <textarea id="followupOutcomeNotes" class="form-control" rows="3" placeholder="اكتب تفاصيل ما تم في المكالمة أو سبب الحالة..." required></textarea>
+                        <label class="form-label fw-semibold">ملاحظات ما تم التوصل إليه</label>
+                        <textarea id="followupOutcomeNotes" class="form-control" rows="3" required></textarea>
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100 fw-bold">Save & Update Result</button>
@@ -766,22 +776,22 @@
                     </div>
                     
                     <div class="mb-2">
-                        <label class="form-label fw-semibold">Total Selling Price (إجمالي سعر البيع - EGP)</label>
+                        <label class="form-label fw-semibold">Total Selling Price (EGP)</label>
                         <input type="number" id="bookingSellingPrice" class="form-control" oninput="calculateBookingProfit()" required>
                     </div>
 
                     <div class="mb-2">
-                        <label class="form-label fw-semibold">Net Price (صافي التكلفة - EGP)</label>
+                        <label class="form-label fw-semibold">Net Price (EGP)</label>
                         <input type="number" id="bookingNetPrice" class="form-control" oninput="calculateBookingProfit()" required>
                     </div>
 
                     <div class="mb-2 bg-light p-2 rounded border">
-                        <label class="form-label fw-semibold text-roving-green mb-0">Net Profit (صافي الربح التلقائي):</label>
+                        <label class="form-label fw-semibold text-roving-green mb-0">Net Profit:</label>
                         <h4 id="calcProfitDisplay" class="fw-bold text-roving-orange m-0">EGP 0</h4>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Trip End Date (For Commission Release)</label>
+                        <label class="form-label fw-semibold">Trip End Date</label>
                         <input type="date" id="bookingEndDate" class="form-control" required>
                     </div>
 
@@ -805,51 +815,49 @@
                 
                 <div class="row g-3 mb-4 p-3 bg-light rounded border">
                     <div class="col-md-4 text-center">
-                        <small class="text-muted d-block">إجمالي سعر البيع (Selling Price)</small>
+                        <small class="text-muted d-block">إجمالي سعر البيع</small>
                         <h4 id="instModalSelling" class="fw-bold text-dark m-0">EGP 0</h4>
                     </div>
                     <div class="col-md-4 text-center">
-                        <small class="text-muted d-block">إجمالي المدفوع (Total Paid)</small>
+                        <small class="text-muted d-block">إجمالي المدفوع</small>
                         <h4 id="instModalPaid" class="fw-bold text-success m-0">EGP 0</h4>
                     </div>
                     <div class="col-md-4 text-center">
-                        <small class="text-muted d-block">المبلغ المتبقي (Remaining)</small>
+                        <small class="text-muted d-block">المبلغ المتبقي</small>
                         <h4 id="instModalRemaining" class="fw-bold text-danger m-0">EGP 0</h4>
                     </div>
                 </div>
 
-                <!-- Add New Payment Form -->
                 <form id="addPaymentForm" class="border p-3 rounded mb-4 bg-white shadow-sm" onsubmit="addNewPaymentEntry(event)">
                     <h6 class="fw-bold text-roving-orange mb-3"><i class="fa-solid fa-plus-circle me-1"></i> إضافة دفعة / قسط جديد</h6>
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label class="form-label small fw-semibold">مبلغ الدفعة (Amount - EGP)</label>
-                            <input type="number" id="newPayAmount" class="form-control form-control-sm" placeholder="مثال: 5000" required>
+                            <label class="form-label small fw-semibold">مبلغ الدفعة (EGP)</label>
+                            <input type="number" id="newPayAmount" class="form-control form-control-sm" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-semibold">تاريخ الدفع (Date)</label>
+                            <label class="form-label small fw-semibold">تاريخ الدفع</label>
                             <input type="date" id="newPayDate" class="form-control form-control-sm" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-semibold">طريقة الدفع / ملاحظة</label>
-                            <input type="text" id="newPayMethod" class="form-control form-control-sm" placeholder="فودافون كاش / إنستابح / كاش" required>
+                            <input type="text" id="newPayMethod" class="form-control form-control-sm" placeholder="كاش / فودافون كاش..." required>
                         </div>
                         <div class="col-12">
-                            <button type="submit" class="btn btn-success btn-sm w-100 fw-bold"><i class="fa-solid fa-check me-1"></i> تسجيل وإضافة الدفعة لملف العميل</button>
+                            <button type="submit" class="btn btn-success btn-sm w-100 fw-bold">تسجيل الدفعة</button>
                         </div>
                     </div>
                 </form>
 
-                <!-- Payments History Table -->
                 <h6 class="fw-bold text-roving-green mb-2">سجل الدفعات السابقة</h6>
                 <div class="table-responsive">
                     <table class="table table-sm table-bordered align-middle">
                         <thead class="table-light">
                             <tr>
                                 <th>#</th>
-                                <th>المبلغ المدفوع</th>
-                                <th>تاريخ الدفع</th>
-                                <th>طريقة الدفع / ملاحظات</th>
+                                <th>المبلغ</th>
+                                <th>التاريخ</th>
+                                <th>طريقة الدفع</th>
                                 <th>إجراء</th>
                             </tr>
                         </thead>
@@ -895,6 +903,25 @@ let pendingBookingEdits = JSON.parse(localStorage.getItem('crm_pending_booking_e
 
 let perfChartInstance = null;
 let leadStatusChartInstance = null;
+
+// دالة إخفاء وإظهار القائمة الجانبية (Sidebar)
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebarContainer');
+    const mainContent = document.getElementById('mainContentArea');
+    const showBtn = document.getElementById('showSidebarBtn');
+
+    sidebar.classList.toggle('collapsed');
+
+    if (sidebar.classList.contains('collapsed')) {
+        mainContent.classList.remove('col-md-10');
+        mainContent.classList.add('col-md-12');
+        showBtn.classList.remove('d-none');
+    } else {
+        mainContent.classList.remove('col-md-12');
+        mainContent.classList.add('col-md-10');
+        showBtn.classList.add('d-none');
+    }
+}
 
 function saveLocalData() {
     localStorage.setItem('crm_clients', JSON.stringify(clients));
@@ -982,7 +1009,7 @@ async function initApp() {
     renderAllViews();
 }
 
-function addNotification(targetUserEmail, textMsg, isEmailDispatch = false) {
+function addNotification(targetUserEmail, textMsg) {
     const now = new Date();
     const dateStr = now.toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' }) + ' - ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
@@ -1018,7 +1045,7 @@ function checkTodayFollowups() {
         const clientObj = clients.find(c => c.name === task.clientName);
         const fileNum = clientObj ? clientObj.fileNo : 'N/A';
         
-        const notifText = `📞 النهاردة في فولو أب للعميل: <strong>${task.clientName}</strong> (ملف #${fileNum})`;
+        const notifText = `📞 فولو أب اليوم للعميل: <strong>${task.clientName}</strong> (ملف #${fileNum})`;
         const exists = notifications.some(n => n.targetUser === currentUser.email && n.text === notifText);
 
         if (!exists) {
@@ -1081,9 +1108,9 @@ function populateDropdowns() {
 function populateReportUserDropdown() {
     const select = document.getElementById('reportUserSelect');
     if (!select) return;
-    select.innerHTML = `<option value="ALL">-- جميع الموظفين (All Team Report) --</option>`;
+    select.innerHTML = `<option value="ALL">-- جميع الموظفين --</option>`;
     validUsers.forEach(u => {
-        select.innerHTML += `<option value="${u.email}">${u.name} (${u.email})</option>`;
+        select.innerHTML += `<option value="${u.email}">${u.name}</option>`;
     });
 }
 
@@ -1104,7 +1131,7 @@ function populateFollowupClientsDropdown(filterText = "") {
     }
 
     if (filteredClients.length === 0) {
-        select.innerHTML = `<option value="" disabled>-- لا توجد نتائج مطابقة --</option>`;
+        select.innerHTML = `<option value="" disabled>-- لا توجد نتائج --</option>`;
         return;
     }
 
@@ -1203,7 +1230,7 @@ document.getElementById('addClientForm').addEventListener('submit', function(e) 
         );
 
         if (isDuplicate) {
-            alert("⚠️ هذا العميل مسجل مسبقاً في النظام (برقم الهاتف أو الاسم مسجل من قبل)!");
+            alert("⚠️ هذا العميل مسجل مسبقاً في النظام!");
             return;
         }
 
@@ -1229,7 +1256,7 @@ document.getElementById('addFollowupForm').addEventListener('submit', function(e
     const editingId = document.getElementById('editingFollowupId').value;
     const clientName = document.getElementById('followupClientSelect').value;
     if (!clientName) {
-        alert("يرجى اختيار العميل أولاً من القائمة.");
+        alert("يرجى اختيار العميل أولاً.");
         return;
     }
     const clientObj = clients.find(c => c.name === clientName);
@@ -1263,7 +1290,7 @@ document.getElementById('addFollowupForm').addEventListener('submit', function(e
 });
 
 function deleteFollowup(id) {
-    if (confirm("هل أنت متأكد من حذف هذه المتابعة نهائياً؟")) {
+    if (confirm("هل أنت متأكد من حذف هذه المتابعة؟")) {
         followups = followups.filter(f => f.id !== id);
         saveLocalData();
         initApp();
@@ -1342,7 +1369,7 @@ function renderAdminUsersTable() {
         tbody.innerHTML += `
             <tr>
                 <td><strong>${u.name}</strong></td>
-                <td><small class="text-dark">${u.email}</small></td>
+                <td><small>${u.email}</small></td>
                 <td>${roleBadge}</td>
                 <td>${u.commissionRate || 10}%</td>
                 <td>${deleteBtn}</td>
@@ -1361,7 +1388,7 @@ document.getElementById('addNewUserForm').addEventListener('submit', function(e)
 
     const exists = validUsers.some(u => u.email.toLowerCase() === email);
     if (exists) {
-        alert("⚠️ هذا البريد الإلكتروني مسجل مسبقاً لمستخدم آخر!");
+        alert("⚠️ البريد مسجل مسبقاً!");
         return;
     }
 
@@ -1375,7 +1402,7 @@ document.getElementById('addNewUserForm').addEventListener('submit', function(e)
 });
 
 function deleteUserSystem(email) {
-    if (confirm(`هل أنت متأكد من حذف المستخدم (${email}) نهائياً من النظام؟`)) {
+    if (confirm(`هل أنت متأكد من حذف المستخدم (${email})؟`)) {
         validUsers = validUsers.filter(u => u.email.toLowerCase() !== email.toLowerCase());
         saveLocalData();
         initApp();
@@ -1464,7 +1491,7 @@ document.getElementById('addBookingForm').addEventListener('submit', function(e)
                 payload: bookingPayload,
                 requestedBy: currentUser.email
             });
-            alert("تم إرسال طلب تعديل الحجز بنجاح إلى الأدمن للمراجعة والموافقة.");
+            alert("تم إرسال طلب التعديل للأدمن للمراجعة.");
         } else {
             pendingBookingEdits.push({
                 id: Date.now(),
@@ -1472,7 +1499,7 @@ document.getElementById('addBookingForm').addEventListener('submit', function(e)
                 payload: bookingPayload,
                 requestedBy: currentUser.email
             });
-            alert("تم إرسال طلب إنشاء الحجز الجديد بنجاح إلى الأدمن للموافقة.");
+            alert("تم إرسال طلب إنشاء الحجز للأدمن للموافقة.");
         }
         saveLocalData();
         bootstrap.Modal.getInstance(document.getElementById('addBookingModal')).hide();
@@ -1480,7 +1507,6 @@ document.getElementById('addBookingForm').addEventListener('submit', function(e)
     }
 });
 
-/* فتح نافذة إدارة الأقساط والدفعات */
 function openInstallmentsModal(bookingId) {
     document.getElementById('currentInstallmentBookingId').value = bookingId;
     document.getElementById('addPaymentForm').reset();
@@ -1509,7 +1535,7 @@ function renderInstallmentsData(bookingId) {
     tbody.innerHTML = '';
 
     if (booking.payments.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">لا توجد دفعات مسجلة بعد لهذا الحجز</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">لا توجد دفعات مسجلة</td></tr>`;
         return;
     }
 
@@ -1521,7 +1547,7 @@ function renderInstallmentsData(bookingId) {
                 <td>${pay.date || '-'}</td>
                 <td>${pay.method || '-'}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deletePaymentEntry(${booking.id}, ${pay.id})" title="حذف الدفعة"><i class="fa-solid fa-trash"></i></button>
+                    <button class="btn btn-sm btn-outline-danger py-0 px-2" onclick="deletePaymentEntry(${booking.id}, ${pay.id})"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>
         `;
@@ -1540,15 +1566,6 @@ function addNewPaymentEntry(e) {
     const date = document.getElementById('newPayDate').value;
     const method = document.getElementById('newPayMethod').value.trim();
 
-    const totalPaid = booking.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
-    const remaining = (booking.amount || 0) - totalPaid;
-
-    if (amount > remaining) {
-        if (!confirm(`⚠️ مبلغ الدفعة (${amount}) أكبر من المبلغ المتبقي (${remaining})! هل أنت متأكد من الاستمرار؟`)) {
-            return;
-        }
-    }
-
     booking.payments.push({
         id: Date.now(),
         amount: amount,
@@ -1561,11 +1578,11 @@ function addNewPaymentEntry(e) {
     document.getElementById('newPayDate').value = new Date().toISOString().split('T')[0];
     renderInstallmentsData(bookingId);
     renderBookings();
-    alert("تم إضافة الدفعة بنجاح وتحديث حسابات العميل!");
+    alert("تم إضافة الدفعة بنجاح!");
 }
 
 function deletePaymentEntry(bookingId, paymentId) {
-    if (!confirm("هل أنت متأكد من حذف هذه الدفعة نهائياً؟")) return;
+    if (!confirm("هل أنت متأكد من حذف هذه الدفعة؟")) return;
     const booking = bookings.find(b => b.id === bookingId);
     if (!booking || !booking.payments) return;
 
@@ -1580,7 +1597,7 @@ function requestDeleteBooking(id) {
     if (!booking) return;
 
     if (currentUser.role === 'Admin') {
-        if (confirm("هل أنت متأكد من حذف هذا الحجز نهائياً؟")) {
+        if (confirm("هل أنت متأكد من الحذف؟")) {
             bookings = bookings.filter(b => b.id !== id);
             saveLocalData();
             initApp();
@@ -1594,7 +1611,7 @@ function requestDeleteBooking(id) {
             requestedBy: currentUser.email
         });
         saveLocalData();
-        alert("تم إرسال طلب حذف الحجز إلى الأدمن للموافقة.");
+        alert("تم إرسال طلب الحذف للأدمن.");
         initApp();
     }
 }
@@ -1608,12 +1625,12 @@ function renderPendingBookingEdits() {
     badge.innerText = pendingBookingEdits.length;
 
     if (pendingBookingEdits.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">لا توجد طلبات معلقة حالياً</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">لا توجد طلبات معلقة</td></tr>`;
         return;
     }
 
     pendingBookingEdits.forEach(req => {
-        let typeBadge = '<span class="badge bg-primary">إنشاء جديد</span>';
+        let typeBadge = '<span class="badge bg-primary">إنشاء</span>';
         if (req.type === 'EDIT') typeBadge = '<span class="badge bg-warning text-dark">تعديل</span>';
         if (req.type === 'DELETE') typeBadge = '<span class="badge bg-danger">حذف</span>';
 
@@ -1622,7 +1639,7 @@ function renderPendingBookingEdits() {
                 <td><span class="badge bg-dark">${req.payload.fileNo || 'N/A'}</span></td>
                 <td><strong>${req.payload.clientName}</strong></td>
                 <td>${typeBadge}</td>
-                <td><small>${req.payload.details} | البيع: ${req.payload.amount} | البروفيت: ${req.payload.profit}</small></td>
+                <td><small>${req.payload.details} | البيع: ${req.payload.amount}</small></td>
                 <td>${req.requestedBy}</td>
                 <td>
                     <button class="btn btn-sm btn-success me-1" onclick="approveBookingRequest(${req.id})"><i class="fa-solid fa-check"></i> موافقة</button>
@@ -1642,9 +1659,7 @@ function approveBookingRequest(reqId) {
         bookings.push(req.payload);
     } else if (req.type === 'EDIT') {
         const index = bookings.findIndex(b => b.id === req.bookingId);
-        if (index !== -1) {
-            bookings[index] = req.payload;
-        }
+        if (index !== -1) bookings[index] = req.payload;
     } else if (req.type === 'DELETE') {
         bookings = bookings.filter(b => b.id !== req.bookingId);
     }
@@ -1678,15 +1693,13 @@ function renderReports() {
             document.getElementById('reportDateVal').value = new Date().toISOString().split('T')[0];
         }
     } else if (periodType === 'yearly') {
-        dateLabel.innerText = "اختر السنة (مثال: 2026)";
+        dateLabel.innerText = "اختر السنة";
         document.getElementById('reportDateVal').type = 'number';
-        if (!dateInputVal) {
-            document.getElementById('reportDateVal').value = new Date().getFullYear();
-        }
+        if (!dateInputVal) document.getElementById('reportDateVal').value = new Date().getFullYear();
     } else {
-        dateLabel.innerText = "الفترة المفتوحة";
+        dateLabel.innerText = "الفترة";
         document.getElementById('reportDateVal').type = 'text';
-        document.getElementById('reportDateVal').value = "جميع الفترات";
+        document.getElementById('reportDateVal').value = "الكل";
     }
 
     let selectedAgent = currentUser.email;
@@ -1731,13 +1744,12 @@ function renderReports() {
     const inactiveCount = filteredClients.filter(c => c.status === 'Lost' || c.status === 'New').length;
     document.getElementById('reportInactiveLeads').innerText = inactiveCount;
 
-    renderPerformanceChart(filteredBookings, periodType);
+    renderPerformanceChart(filteredBookings);
     renderLeadStatusChart(filteredClients);
 }
 
-function renderPerformanceChart(bookingsList, periodType) {
+function renderPerformanceChart(bookingsList) {
     const ctx = document.getElementById('performanceChart').getContext('2d');
-    
     let labels = [];
     let profitData = [];
     let sellingData = [];
@@ -1767,8 +1779,8 @@ function renderPerformanceChart(bookingsList, periodType) {
         data: {
             labels: labels,
             datasets: [
-                { label: 'إجمالي البيع (Selling Price)', data: sellingData, backgroundColor: '#D94A26', borderRadius: 6 },
-                { label: 'صافي الربح (Net Profit)', data: profitData, backgroundColor: '#C27835', borderRadius: 6 }
+                { label: 'إجمالي البيع', data: sellingData, backgroundColor: '#D94A26', borderRadius: 6 },
+                { label: 'صافي الربح', data: profitData, backgroundColor: '#C27835', borderRadius: 6 }
             ]
         },
         options: { responsive: true, plugins: { legend: { position: 'top' } } }
@@ -1777,14 +1789,10 @@ function renderPerformanceChart(bookingsList, periodType) {
 
 function renderLeadStatusChart(clientsList) {
     const ctx = document.getElementById('leadStatusChart').getContext('2d');
-    
     let statusCounts = { "New": 0, "Contacted": 0, "Interested": 0, "Closed/Won": 0, "Lost": 0 };
     clientsList.forEach(c => {
-        if (statusCounts[c.status] !== undefined) {
-            statusCounts[c.status]++;
-        } else {
-            statusCounts["New"]++;
-        }
+        if (statusCounts[c.status] !== undefined) statusCounts[c.status]++;
+        else statusCounts["New"]++;
     });
 
     if (leadStatusChartInstance) leadStatusChartInstance.destroy();
@@ -1807,10 +1815,10 @@ function renderAdminCommissionSettings() {
     if (!container) return;
     container.innerHTML = '';
 
-    validUsers.forEach((u, idx) => {
+    validUsers.forEach((u) => {
         container.innerHTML += `
             <div class="mb-2 d-flex justify-content-between align-items-center border-bottom pb-2">
-                <div><strong>${u.name}</strong> <small class="text-muted">(${u.role})</small></div>
+                <div><strong>${u.name}</strong></div>
                 <div style="width: 120px;">
                     <div class="input-group input-group-sm">
                         <input type="number" class="form-control user-comm-input" data-email="${u.email}" value="${u.commissionRate || 10}" min="0" max="100">
@@ -1828,10 +1836,10 @@ function saveUserCommissionsConfig() {
         const email = inp.getAttribute('data-email');
         const val = parseFloat(inp.value) || 0;
         const targetUsr = validUsers.find(u => u.email === email);
-        if (targetUsr) { targetUsr.commissionRate = val; }
+        if (targetUsr) targetUsr.commissionRate = val;
     });
     saveLocalData();
-    alert("تم تحديث نسب العمولات بنجاح!");
+    alert("تم تحديث العمولات بنجاح!");
     initApp();
 }
 
@@ -1847,14 +1855,14 @@ document.getElementById('changePasswordForm').addEventListener('submit', functio
 
     if (userObj.pass !== curPass) {
         alertDiv.classList.add('alert-danger');
-        alertDiv.innerText = "Current password is incorrect!";
+        alertDiv.innerText = "كلمة المرور الحالية غير صحيحة!";
         alertDiv.classList.remove('d-none');
         return;
     }
 
     if (newPass !== confPass) {
         alertDiv.classList.add('alert-danger');
-        alertDiv.innerText = "New passwords do not match!";
+        alertDiv.innerText = "كلمات المرور الجديدة غير متطابقة!";
         alertDiv.classList.remove('d-none');
         return;
     }
@@ -1864,7 +1872,7 @@ document.getElementById('changePasswordForm').addEventListener('submit', functio
     saveLocalData();
 
     alertDiv.classList.add('alert-success');
-    alertDiv.innerText = "Password updated successfully!";
+    alertDiv.innerText = "تم تحديث كلمة المرور بنجاح!";
     alertDiv.classList.remove('d-none');
     document.getElementById('changePasswordForm').reset();
 });
@@ -1913,11 +1921,11 @@ function renderClients() {
                         <option value="Lost" ${c.status === 'Lost' ? 'selected' : ''}>Lost</option>
                     </select>
                 </td>
-                <td><small class="text-muted text-truncate d-inline-block" style="max-width: 150px;" title="${c.notes || ''}">${c.notes || '-'}</small></td>
+                <td><small class="text-muted text-truncate d-inline-block" style="max-width: 150px;">${c.notes || '-'}</small></td>
                 <td>
                     ${c.deleteRequested ? '<span class="badge bg-warning text-dark">Deletion Pending</span>' : `
-                        <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditClientModal(${c.id})" title="Edit Client"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button class="btn btn-sm btn-outline-warning me-1" onclick="openTransferModal(${c.id})" title="Transfer Owner"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditClientModal(${c.id})" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="btn btn-sm btn-outline-warning me-1" onclick="openTransferModal(${c.id})" title="Transfer"><i class="fa-solid fa-arrow-right-arrow-left"></i></button>
                         <button class="btn btn-sm btn-outline-danger" onclick="requestDelete(${c.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
                     `}
                 </td>
@@ -1950,8 +1958,8 @@ function renderFollowups() {
         let adminActions = '';
         if (currentUser.role === 'Admin') {
             adminActions = `
-                <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditFollowupModal(${f.id})" title="تعديل المتابعة"><i class="fa-solid fa-pen"></i></button>
-                <button class="btn btn-sm btn-outline-danger me-1" onclick="deleteFollowup(${f.id})" title="حذف المتابعة"><i class="fa-solid fa-trash"></i></button>
+                <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditFollowupModal(${f.id})"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn btn-sm btn-outline-danger me-1" onclick="deleteFollowup(${f.id})"><i class="fa-solid fa-trash"></i></button>
             `;
         }
 
@@ -1998,7 +2006,7 @@ function renderBookings() {
                 <td><span class="badge bg-secondary">${b.tripEndDate}</span></td>
                 <td>${b.assignedTo}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-success me-1" onclick="openInstallmentsModal(${b.id})" title="إدارة المدفوعات والأقساط"><i class="fa-solid fa-money-bill-wave"></i></button>
+                    <button class="btn btn-sm btn-outline-success me-1" onclick="openInstallmentsModal(${b.id})" title="الدفعات"><i class="fa-solid fa-money-bill-wave"></i></button>
                     <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditBookingModal(${b.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
                     <button class="btn btn-sm btn-outline-danger" onclick="requestDeleteBooking(${b.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
                 </td>
@@ -2038,8 +2046,8 @@ function renderCommissions() {
                 <td><strong class="text-roving-orange">EGP ${commValue.toLocaleString()}</strong></td>
                 <td>
                     ${isCompleted ? 
-                        '<span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> Released</span>' : 
-                        '<span class="badge bg-warning text-dark"><i class="fa-solid fa-clock me-1"></i> Pending Trip Completion</span>'
+                        '<span class="badge bg-success">Released</span>' : 
+                        '<span class="badge bg-warning text-dark">Pending Completion</span>'
                     }
                 </td>
             </tr>
@@ -2071,13 +2079,13 @@ function renderNotifications() {
         let bgStyle = n.isRead ? 'background-color: rgba(255, 255, 255, 0.02); opacity: 0.7;' : 'background-color: rgba(217, 74, 38, 0.15); border-left: 3px solid #D94A26;';
         
         notifList.innerHTML += `
-            <div class="notif-item p-2 mb-1 rounded" style="${bgStyle} cursor: pointer;" onclick="handleNotificationClick(${n.id})" title="اضغط للانتقال لجدول الفولو أب">
+            <div class="notif-item p-2 mb-1 rounded" style="${bgStyle} cursor: pointer;" onclick="handleNotificationClick(${n.id})">
                 <div class="d-flex justify-content-between align-items-start">
                     <span class="small text-light" style="font-size: 0.8rem; line-height: 1.3; flex-grow: 1;">${n.text}</span>
-                    <span class="ms-1" style="font-size: 0.7rem;">${n.isRead ? '<i class="fa-solid fa-check-double text-success" title="مقروء"></i>' : '<i class="fa-solid fa-circle text-warning" style="font-size: 0.5rem;" title="غير مقروء"></i>'}</span>
+                    <span class="ms-1" style="font-size: 0.7rem;">${n.isRead ? '<i class="fa-solid fa-check-double text-success"></i>' : '<i class="fa-solid fa-circle text-warning" style="font-size: 0.5rem;"></i>'}</span>
                 </div>
                 <div class="text-end mt-1">
-                    <span class="text-muted" style="font-size: 0.65rem;"><i class="fa-regular fa-clock me-1"></i>${n.date || 'وقت سابق'}</span>
+                    <span class="text-muted" style="font-size: 0.65rem;">${n.date || ''}</span>
                 </div>
             </div>
         `;
@@ -2141,11 +2149,9 @@ async function confirmTransfer() {
     const client = clients.find(c => c.id === id);
     if (client) {
         client.assignedTo = newAgent;
-        
-        addNotification(newAgent, `📢 Client transferred: [#${client.fileNo}] <strong>${client.name}</strong> (Transferred by ${currentUser.email})`);
-
+        addNotification(newAgent, `📢 Client transferred: [#${client.fileNo}] <strong>${client.name}</strong>`);
         saveLocalData();
-        alert(`Client '#${client.fileNo} - ${client.name}' successfully transferred to ${newAgent}.`);
+        alert(`تم نقل العميل بنجاح إلى ${newAgent}.`);
     }
 
     bootstrap.Modal.getInstance(document.getElementById('transferModal')).hide();
@@ -2157,15 +2163,15 @@ async function requestDelete(id) {
     if (!client) return;
 
     if (currentUser.role === 'Admin') {
-        if (confirm("Are you sure you want to permanently delete this client?")) {
+        if (confirm("هل أنت متأكد من الحذف النهائي؟")) {
             clients = clients.filter(c => c.id !== id);
             saveLocalData();
         }
     } else {
         client.deleteRequested = true;
-        addNotification("asmaa.ashraf.1312002@gmail.com", `Deletion requested for client: [#${client.fileNo}] ${client.name} by ${currentUser.email}`);
+        addNotification("asmaa.ashraf.1312002@gmail.com", `طلب حذف للعميل: [#${client.fileNo}] ${client.name} بواسطة ${currentUser.email}`);
         saveLocalData();
-        alert("Deletion request sent to administrator for approval.");
+        alert("تم إرسال طلب الحذف للأدمن.");
     }
     initApp();
 }
