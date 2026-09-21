@@ -16,9 +16,9 @@
     <style>
         :root {
             --roving-orange: #D94A26;
-            --roving-green: #203A2B;
+            --roving-green: #C27835; /* تم التعديل ليكون درجة بيج/برتقالي متناسقة مع هوية روفينج */
             --roving-bg: #F9F6EE;
-            --roving-dark-green: #14251B;
+            --roving-dark-green: #8E5222; /* درجة متناسقة داكنة بدلاً من الأخضر القديم */
             --roving-light-orange: #F39C12;
         }
 
@@ -86,7 +86,7 @@
 
         .notif-item { 
             font-size: 0.85rem; 
-            border-bottom: 1px solid #2D4A38; 
+            border-bottom: 1px solid #A6632B; 
             padding: 8px 0; 
             color: #E2E8F0;
             cursor: pointer;
@@ -103,7 +103,7 @@
             margin: 80px auto; 
             border-radius: 16px; 
             border: none; 
-            box-shadow: 0 10px 30px rgba(32, 58, 43, 0.15); 
+            box-shadow: 0 10px 30px rgba(194, 120, 53, 0.15); 
             background: #ffffff;
         }
 
@@ -1760,7 +1760,7 @@ function renderPerformanceChart(bookingsList, periodType) {
             labels: labels,
             datasets: [
                 { label: 'إجمالي البيع (Selling Price)', data: sellingData, backgroundColor: '#D94A26', borderRadius: 6 },
-                { label: 'صافي الربح (Net Profit)', data: profitData, backgroundColor: '#203A2B', borderRadius: 6 }
+                { label: 'صافي الربح (Net Profit)', data: profitData, backgroundColor: '#C27835', borderRadius: 6 }
             ]
         },
         options: { responsive: true, plugins: { legend: { position: 'top' } } }
