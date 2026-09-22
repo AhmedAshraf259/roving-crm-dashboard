@@ -664,30 +664,26 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     document.getElementById('loginSection').classList.add('d-none');
     document.getElementById('appSection').classList.remove('d-none');
     
-    initApp();
-});
-
-function handleLogout() {
-    currentUser = null;
-    localStorage.removeItem('crm_user');
-    document.getElementById('loginSection').classList.remove('d-none');
-    document.getElementById('appSection').classList.add('d-none');
-}
-
-async function initApp() {
+  async function initApp() {
     document.getElementById('userDisplayName').innerText = currentUser.email;
     document.getElementById('userRoleBadge').innerText = currentUser.role;
     
     if (currentUser.role === 'Admin') {
         document.getElementById('userRoleBadge').className = "badge bg-danger mt-1";
-        document.getElementById('adminCommissionSettingsCard').style.display = 'block';
+        if (document.getElementById('adminCommissionSettingsCard')) {
+            document.getElementById('adminCommissionSettingsCard').style.display = 'block';
+        }
     } else {
         document.getElementById('userRoleBadge').className = "badge bg-warning text-dark mt-1";
-        document.getElementById('adminCommissionSettingsCard').style.display = 'none';
+        if (document.getElementById('adminCommissionSettingsCard')) {
+            document.getElementById('adminCommissionSettingsCard').style.display = 'none';
+        }
     }
 
-    await fetchClients(); // سحب العملاء من السحابة عند بدء التشغيل
+    await fetchClients(); // جلب العملاء أولاً من السحابة
+    populateDropdowns();  // تعبئة قائمة الموظفين (Assign To) والعملاء فوراً
     renderAllViews();
+
 }
 
 function renderAllViews() {
