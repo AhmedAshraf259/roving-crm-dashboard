@@ -337,11 +337,15 @@ function toggleSidebar() {
 
 async function fetchClients() {
     try {
-        const response = await fetch(API_URL);
-        clients = await response.json();
-        renderClients();
+        const response = await fetch('/api/clients');
+        const data = await response.json();
+        
+        // التأكد من أن البيانات القادمة هي مصفوفة وليست رسالة خطأ
+        const clients = Array.isArray(data) ? data : (data.clients || []);
+        
+        renderClients(clients);
     } catch (error) {
-        console.error('خطأ في جلب العملاء من السحابة:', error);
+        console.error('خطأ في جلب العملاء:', error);
     }
 }
 
