@@ -483,7 +483,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <!-- تم ربط الـ ID بـ addClientForm ليطابق كود الـ API السحابي -->
                 <form id="addClientForm">
                     <input type="hidden" id="editingClientId" value="">
                     
@@ -520,7 +519,7 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Assign To</label>
-                            <!-- تم ربط الـ ID بـ assignedEmployee ليطابق دالة الإضافة السحابية -->
+                            <!-- تم ضبط الـ ID هنا ليكون assignedEmployee ليتوافق مع دالة تعبئة القوائم -->
                             <select id="assignedEmployee" class="form-select" required></select>
                         </div>
 
@@ -531,7 +530,6 @@
 
                         <div class="col-md-6">
                             <label class="form-label">Passport Number</label>
-                            <!-- تم ربط الـ ID بـ clientPassport ليطابق دالة الإضافة السحابية -->
                             <input type="text" id="clientPassport" class="form-control" placeholder="A12345678">
                         </div>
 
@@ -575,7 +573,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// رابط السيرفر السحابي (Backend API)
 const API_URL = 'http://localhost:5000/api/clients';
 
 let validUsers = JSON.parse(localStorage.getItem('crm_users')) || [
@@ -587,12 +584,9 @@ let validUsers = JSON.parse(localStorage.getItem('crm_users')) || [
 
 let currentUser = null;
 let notifications = JSON.parse(localStorage.getItem('crm_notifications')) || [];
-let clients = []; // سيتم جلبها سحابياً
+let clients = []; 
 let followups = JSON.parse(localStorage.getItem('crm_followups')) || [];
 let bookings = JSON.parse(localStorage.getItem('crm_bookings')) || [];
-
-let perfChartInstance = null;
-let leadStatusChartInstance = null;
 
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebarContainer');
@@ -610,14 +604,6 @@ function toggleSidebar() {
     }
 }
 
-function saveLocalData() {
-    localStorage.setItem('crm_followups', JSON.stringify(followups));
-    localStorage.setItem('crm_bookings', JSON.stringify(bookings));
-    localStorage.setItem('crm_users', JSON.stringify(validUsers));
-    localStorage.setItem('crm_notifications', JSON.stringify(notifications));
-}
-
-// 1. دالة جلب وعرض العملاء من السحابة (MongoDB Atlas)
 async function fetchClients() {
     try {
         const response = await fetch(API_URL);
@@ -664,7 +650,10 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     document.getElementById('loginSection').classList.add('d-none');
     document.getElementById('appSection').classList.remove('d-none');
     
-  async function initApp() {
+    initApp();
+});
+
+async function initApp() {
     document.getElementById('userDisplayName').innerText = currentUser.email;
     document.getElementById('userRoleBadge').innerText = currentUser.role;
     
@@ -680,10 +669,9 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
         }
     }
 
-    await fetchClients(); // جلب العملاء أولاً من السحابة
-    populateDropdowns();  // تعبئة قائمة الموظفين (Assign To) والعملاء فوراً
+    await fetchClients(); 
+    populateDropdowns();  
     renderAllViews();
-
 }
 
 function renderAllViews() {
@@ -730,7 +718,6 @@ function openAddClientModal() {
     document.getElementById('addClientForm').reset();
 }
 
-// 2. دالة إضافة عميل جديد وإرساله إلى السحابة مباشرة (MongoDB Atlas)
 async function handleAddClient(event) {
     event.preventDefault();
 
@@ -757,7 +744,7 @@ async function handleAddClient(event) {
             alert('تم إضافة العميل وحفظه على السحابة بنجاح!');
             document.getElementById('addClientForm').reset();
             bootstrap.Modal.getInstance(document.getElementById('addClientModal')).hide();
-            fetchClients(); // تحديث الجدول فوراً
+            fetchClients(); 
         } else {
             alert('فشل حفظ العميل، تأكد من البيانات المدخلة.');
         }
@@ -767,7 +754,6 @@ async function handleAddClient(event) {
     }
 }
 
-// ربط الدالة بنموذج الإضافة
 const clientForm = document.getElementById('addClientForm');
 if (clientForm) {
     clientForm.addEventListener('submit', handleAddClient);
@@ -804,27 +790,10 @@ function renderClients() {
     });
 }
 
-function renderFollowups() {
-    const tbody = document.getElementById('followupsTableBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-}
-
-function renderBookings() {
-    const tbody = document.getElementById('bookingsTableBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-}
-
-function renderCommissions() {
-    const tbody = document.getElementById('commissionsTableBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-}
-
-function renderReports() {
-    // التقارير والرسوم البيانية
-}
+function renderFollowups() {}
+function renderBookings() {}
+function renderCommissions() {}
+function renderReports() {}
 </script>
 
 </body>
