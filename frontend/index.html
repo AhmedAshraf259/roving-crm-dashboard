@@ -19,7 +19,7 @@
             --roving-dark-green: #1A2822; 
             --roving-orange: #D45B38;     
             --roving-light-orange: #E67E55; 
-            --roving-bg: #F4F1EA;         
+            --roving-bg: #F4F1EA;        
         }
 
         body { 
@@ -310,7 +310,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// تم تحديث رابط السيرفر السحابي ليعمل مع ريندر مباشرة
+// رابط السيرفر السحابي المحدث على Render
 const API_URL = 'https://roving-crm-backend.onrender.com/api/clients';
 
 let validUsers = [
@@ -429,7 +429,7 @@ function openAddClientModal() {
     document.getElementById('clientModalTitle').innerText = "Add New Client";
     document.getElementById('editingClientId').value = "";
     document.getElementById('addClientForm').reset();
-    populateDropdowns(); // التأكد من تحميل الأسماء فور فتح نافذة الإضافة
+    populateDropdowns(); 
 }
 
 async function handleAddClient(event) {
@@ -500,6 +500,5 @@ function renderClients() {
     });
 }
 </script>
-
 </body>
 </html>
