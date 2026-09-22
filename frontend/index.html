@@ -143,7 +143,6 @@
     <div class="card login-card p-4">
         <div class="text-center mb-4">
             <div class="d-flex justify-content-center align-items-center mb-2">
-                <img src="WhatsApp Image 2026-09-18 at 7.42.23 PM_2.jpeg" alt="Roving Logo" style="height: 45px; object-fit: contain;" class="me-2 rounded">
                 <h3 class="fw-bold text-roving-orange m-0">Roving Travel</h3>
             </div>
             <p class="text-muted">System Login</p>
@@ -170,7 +169,6 @@
         <div class="col-md-2 sidebar p-3" id="sidebarContainer">
             <div class="d-flex justify-content-between align-items-center my-2">
                 <div class="d-flex align-items-center">
-                    <img src="WhatsApp Image 2026-09-18 at 7.42.23 PM_2.jpeg" alt="Roving Logo" style="height: 32px; object-fit: contain;" class="me-2 rounded">
                     <h4 class="text-roving-orange fw-bold m-0" style="font-size: 1rem;">Roving CRM</h4>
                 </div>
                 <button class="btn btn-sm btn-outline-light" onclick="toggleSidebar()" title="إخفاء القائمة">
@@ -185,45 +183,14 @@
                 <div><span id="userRoleBadge" class="badge mt-1"></span></div>
             </div>
 
-            <!-- Notifications Drawer -->
-            <div class="mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                    <button class="btn btn-outline-light w-100 position-relative d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#notifCollapse">
-                        <span><i class="fa-solid fa-bell text-roving-orange me-2"></i> Notifications</span>
-                        <span id="notifBadge" class="badge bg-danger rounded-pill">0</span>
-                    </button>
-                </div>
-                <div class="d-flex justify-content-between mt-1 px-1">
-                    <small role="button" class="text-info text-decoration-underline" onclick="markAllNotificationsAsRead()" style="font-size: 0.75rem;">قراءة الكل (Mark all read)</small>
-                </div>
-                <div class="collapse mt-2" id="notifCollapse">
-                    <div class="notif-box text-light" id="notifList">
-                        <small class="text-muted">No notifications</small>
-                    </div>
-                </div>
-            </div>
-
             <!-- Navigation Links -->
             <nav class="mt-3">
                 <a href="#" id="navClients" class="active" onclick="switchTab('clients')"><i class="fa-solid fa-users me-2"></i> Clients</a>
-                
-                <a href="#" id="navFollowups" onclick="switchTab('followups')" class="d-flex justify-content-between align-items-center">
-                    <span><i class="fa-solid fa-phone-volume me-2"></i> Follow-ups</span>
-                    <span id="sidebarTodayFollowupBadge" class="badge bg-danger rounded-pill">0</span>
-                </a>
-
-                <a href="#" id="navBookings" onclick="switchTab('bookings')"><i class="fa-solid fa-receipt me-2"></i> Bookings & Installments</a>
+                <a href="#" id="navFollowups" onclick="switchTab('followups')"><i class="fa-solid fa-phone-volume me-2"></i> Follow-ups</a>
+                <a href="#" id="navBookings" onclick="switchTab('bookings')"><i class="fa-solid fa-receipt me-2"></i> Bookings</a>
                 <a href="#" id="navCommissions" onclick="switchTab('commissions')"><i class="fa-solid fa-hand-holding-dollar me-2"></i> Commissions</a>
-                <a href="#" id="navReports" onclick="switchTab('reports')"><i class="fa-solid fa-chart-line me-2"></i> Reports & Analytics</a>
+                <a href="#" id="navReports" onclick="switchTab('reports')"><i class="fa-solid fa-chart-line me-2"></i> Reports</a>
                 <a href="#" id="navSettings" onclick="switchTab('settings')"><i class="fa-solid fa-gear me-2"></i> Settings</a>
-                
-                <a href="#" id="pendingDeleteNav" class="d-none text-warning" onclick="switchTab('pendingDeletes')">
-                    <i class="fa-solid fa-shield-halved me-2"></i> Deletion Requests <span id="pendingBadge" class="badge bg-danger">0</span>
-                </a>
-                <a href="#" id="pendingBookingEditNav" class="d-none text-info" onclick="switchTab('pendingBookingEdits')">
-                    <i class="fa-solid fa-file-pen me-2"></i> Booking Approvals <span id="pendingBookingEditBadge" class="badge bg-danger">0</span>
-                </a>
-
                 <a href="#" class="text-danger mt-4" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a>
             </nav>
         </div>
@@ -244,7 +211,7 @@
                 <div class="card card-custom p-3 mb-3 bg-light">
                     <div class="row align-items-center">
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold mb-1"><i class="fa-solid fa-magnifying-glass me-1 text-roving-orange"></i> بحث برقم الهاتف (Phone Search)</label>
+                            <label class="form-label fw-semibold mb-1"><i class="fa-solid fa-magnifying-glass me-1 text-roving-orange"></i> بحث برقم الهاتف</label>
                             <input type="text" id="clientPhoneSearch" class="form-control" placeholder="اكتب رقم الهاتف للبحث..." oninput="renderClients()">
                         </div>
                     </div>
@@ -274,207 +241,33 @@
 
             <!-- Tab 2: Follow-ups -->
             <div id="tabFollowups" class="tab-content-item d-none">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="fw-bold text-roving-green">Follow-ups & Tasks Schedule</h2>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFollowupModal" onclick="openAddFollowupModal()"><i class="fa-solid fa-plus me-1"></i> Add Follow-up</button>
-                </div>
-                <div class="card card-custom p-3">
-                    <div class="table-responsive">
-                        <table class="table align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>File #</th>
-                                    <th>Client</th>
-                                    <th>Follow-up Date</th>
-                                    <th>Notes</th>
-                                    <th>Assigned Agent</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="followupsTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
+                <h2 class="fw-bold text-roving-green">Follow-ups & Tasks Schedule</h2>
             </div>
 
             <!-- Tab 3: Bookings -->
             <div id="tabBookings" class="tab-content-item d-none">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="fw-bold text-roving-green">Confirmed Trips, Bookings & Installments</h2>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBookingModal" onclick="openAddBookingModal()"><i class="fa-solid fa-plus me-1"></i> New Booking</button>
-                </div>
-                <div class="card card-custom p-3">
-                    <div class="table-responsive">
-                        <table class="table align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>File #</th>
-                                    <th>Client</th>
-                                    <th>Trip Details</th>
-                                    <th>Selling Price</th>
-                                    <th>Net Price</th>
-                                    <th>Paid / Remaining</th>
-                                    <th>Trip End Date</th>
-                                    <th>Sales Rep</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="bookingsTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
+                <h2 class="fw-bold text-roving-green">Confirmed Trips & Bookings</h2>
             </div>
 
             <!-- Tab 4: Commissions -->
             <div id="tabCommissions" class="tab-content-item d-none">
-                <h2 class="fw-bold text-roving-green mb-4">Commissions & Revenue Overview</h2>
-                <div class="row mb-4 g-3">
-                    <div class="col-md-4">
-                        <div class="card card-custom p-3 border-start border-4 border-success">
-                            <h6 class="text-muted">Total Net Profit</h6>
-                            <h3 id="totalSalesAmount" class="fw-bold text-roving-green">EGP 0</h3>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card card-custom p-3 border-start border-4 border-warning">
-                            <h6 class="text-muted">Released Commissions (Trip Completed)</h6>
-                            <h3 id="totalCommissionAmount" class="fw-bold text-roving-orange">EGP 0</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="card card-custom p-3">
-                    <div class="table-responsive">
-                        <table class="table align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Agent</th>
-                                    <th>Trip Details</th>
-                                    <th>Trip End Date</th>
-                                    <th>Commission %</th>
-                                    <th>Commission Value</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="commissionsTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
+                <h2 class="fw-bold text-roving-green">Commissions Overview</h2>
             </div>
 
-            <!-- Tab 5: Reports & Analytics -->
+            <!-- Tab 5: Reports -->
             <div id="tabReports" class="tab-content-item d-none">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="fw-bold text-roving-green"><i class="fa-solid fa-chart-line me-2"></i>Performance & Analytics Reports</h2>
-                    <div id="adminReportFilterContainer" class="d-none">
-                        <select id="reportUserSelect" class="form-select border-primary" onchange="renderReports()">
-                            <option value="ALL">-- جميع الموظفين (All Team) --</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="card card-custom p-3 mb-4 bg-light">
-                    <div class="row g-3 align-items-center">
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold mb-1">نوع التقرير الزمني</label>
-                            <select id="reportPeriodType" class="form-select" onchange="renderReports()">
-                                <option value="monthly">تقرير شهري (Monthly)</option>
-                                <option value="daily">تقرير يومي (Daily)</option>
-                                <option value="yearly">تقرير سنوي (Yearly)</option>
-                                <option value="custom">مخصص (Custom Range)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3" id="dateInputContainer">
-                            <label class="form-label fw-semibold mb-1" id="dateLabel">اختر الشهر / السنة</label>
-                            <input type="month" id="reportDateVal" class="form-control" onchange="renderReports()">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row g-3 mb-4">
-                    <div class="col-md-3">
-                        <div class="card card-custom p-3 text-center border-start border-4 border-primary">
-                            <h6 class="text-muted">Total Clients</h6>
-                            <h2 id="reportTotalClients" class="fw-bold text-roving-green">0</h2>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card card-custom p-3 text-center border-start border-4 border-success">
-                            <h6 class="text-muted">Confirmed Bookings</h6>
-                            <h2 id="reportTotalBookings" class="fw-bold text-roving-orange">0</h2>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card card-custom p-3 text-center border-start border-4 border-warning">
-                            <h6 class="text-muted">Total Selling Revenue</h6>
-                            <h2 id="reportTotalSelling" class="fw-bold text-dark fs-4">EGP 0</h2>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card card-custom p-3 text-center border-start border-4 border-danger">
-                            <h6 class="text-muted">Total Net Profit</h6>
-                            <h2 id="reportTotalProfit" class="fw-bold text-success fs-4">EGP 0</h2>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row g-4">
-                    <div class="col-md-8">
-                        <div class="card card-custom p-4">
-                            <h5 class="fw-bold text-roving-green mb-3"><i class="fa-solid fa-chart-area me-2"></i>رسم بياني للأرباح والمبيعات</h5>
-                            <canvas id="performanceChart" height="130"></canvas>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card card-custom p-4">
-                            <h5 class="fw-bold text-roving-green mb-3"><i class="fa-solid fa-chart-pie me-2"></i>حالات العملاء</h5>
-                            <canvas id="leadStatusChart" height="200"></canvas>
-                        </div>
-                    </div>
-                </div>
+                <h2 class="fw-bold text-roving-green">Reports & Analytics</h2>
             </div>
 
             <!-- Tab 6: Settings -->
             <div id="tabSettings" class="tab-content-item d-none">
-                <h2 class="fw-bold text-roving-green mb-4">User & System Settings</h2>
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="card card-custom p-4">
-                            <h5 class="fw-bold text-roving-green mb-3"><i class="fa-solid fa-key me-2"></i>Change Password</h5>
-                            <form id="changePasswordForm">
-                                <div class="mb-3">
-                                    <label class="form-label">Current Password</label>
-                                    <input type="password" id="currentPassword" class="form-control" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">New Password</label>
-                                    <input type="password" id="newPassword" class="form-control" required minlength="6">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Confirm New Password</label>
-                                    <input type="password" id="confirmPassword" class="form-control" required minlength="6">
-                                </div>
-                                <div id="passwordAlert" class="alert d-none py-2" role="alert"></div>
-                                <button type="submit" class="btn btn-primary w-100">Update Password</button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6" id="adminCommissionSettingsCard">
-                        <div class="card card-custom p-4 border-warning">
-                            <h5 class="fw-bold text-roving-orange mb-3"><i class="fa-solid fa-percent me-2"></i>إدارة عمولات الموظفين</h5>
-                            <div id="adminCommissionListContainer"></div>
-                            <button type="button" class="btn btn-success w-100 mt-3" onclick="saveUserCommissionsConfig()">حفظ إعدادات العمولات</button>
-                        </div>
-                    </div>
-                </div>
+                <h2 class="fw-bold text-roving-green">Settings</h2>
             </div>
-
         </div>
     </div>
 </div>
 
-<!-- Modal: Add / Edit Client -->
+<!-- Modal: Add Client -->
 <div class="modal fade" id="addClientModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -519,7 +312,6 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Assign To</label>
-                            <!-- تم ضبط الـ ID هنا ليكون assignedEmployee ليتوافق مع دالة تعبئة القوائم -->
                             <select id="assignedEmployee" class="form-select" required></select>
                         </div>
 
@@ -548,34 +340,13 @@
     </div>
 </div>
 
-<!-- Modal: Add / Edit Follow-up -->
-<div class="modal fade" id="addFollowupModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title fw-bold text-roving-green">Add Follow-up Task</h5></div>
-            <div class="modal-body">
-                <form id="addFollowupForm">
-                    <input type="hidden" id="editingFollowupId" value="">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">اختر العميل</label>
-                        <select id="followupClientSelect" class="form-select" required></select>
-                    </div>
-                    <div class="mb-2"><label class="form-label">Follow-up Date</label><input type="date" id="followupDate" class="form-control" required></div>
-                    <div class="mb-3"><label class="form-label">Notes</label><textarea id="followupNotes" class="form-control" rows="3" required></textarea></div>
-                    <button type="submit" class="btn btn-primary w-100">Schedule Follow-up</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Bootstrap 5 JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
 const API_URL = 'http://localhost:5000/api/clients';
 
-let validUsers = JSON.parse(localStorage.getItem('crm_users')) || [
+let validUsers = [
     { email: "asmaa.ashraf.1312002@gmail.com", pass: "Asmaa@2026", role: "Admin", name: "Asmaa Ashraf", commissionRate: 10 },
     { email: "ahmedashraf88513@gmail.com", pass: "AhmedA#88", role: "Admin", name: "Ahmed Ashraf", commissionRate: 10 },
     { email: "ahmedwanas11@gmail.com", pass: "Wanas!Pass2026", role: "Admin", name: "Ahmed Wanas", commissionRate: 10 },
@@ -583,24 +354,18 @@ let validUsers = JSON.parse(localStorage.getItem('crm_users')) || [
 ];
 
 let currentUser = null;
-let notifications = JSON.parse(localStorage.getItem('crm_notifications')) || [];
 let clients = []; 
-let followups = JSON.parse(localStorage.getItem('crm_followups')) || [];
-let bookings = JSON.parse(localStorage.getItem('crm_bookings')) || [];
 
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebarContainer');
     const mainContent = document.getElementById('mainContentArea');
-    const showBtn = document.getElementById('showSidebarBtn');
     sidebar.classList.toggle('collapsed');
     if (sidebar.classList.contains('collapsed')) {
         mainContent.classList.remove('col-md-10');
         mainContent.classList.add('col-md-12');
-        showBtn.classList.remove('d-none');
     } else {
         mainContent.classList.remove('col-md-12');
         mainContent.classList.add('col-md-10');
-        showBtn.classList.add('d-none');
     }
 }
 
@@ -653,63 +418,45 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
     initApp();
 });
 
+function handleLogout() {
+    currentUser = null;
+    localStorage.removeItem('crm_user');
+    document.getElementById('loginSection').classList.remove('d-none');
+    document.getElementById('appSection').classList.add('d-none');
+}
+
 async function initApp() {
     document.getElementById('userDisplayName').innerText = currentUser.email;
     document.getElementById('userRoleBadge').innerText = currentUser.role;
     
     if (currentUser.role === 'Admin') {
         document.getElementById('userRoleBadge').className = "badge bg-danger mt-1";
-        if (document.getElementById('adminCommissionSettingsCard')) {
-            document.getElementById('adminCommissionSettingsCard').style.display = 'block';
-        }
     } else {
         document.getElementById('userRoleBadge').className = "badge bg-warning text-dark mt-1";
-        if (document.getElementById('adminCommissionSettingsCard')) {
-            document.getElementById('adminCommissionSettingsCard').style.display = 'none';
-        }
     }
 
     await fetchClients(); 
     populateDropdowns();  
-    renderAllViews();
-}
-
-function renderAllViews() {
-    renderFollowups();
-    renderBookings();
-    renderCommissions();
-    renderReports();
 }
 
 function switchTab(tabName) {
     document.querySelectorAll('.tab-content-item').forEach(el => el.classList.add('d-none'));
-    document.querySelectorAll('.sidebar a').forEach(el => el.classList.remove('active'));
-
-    if (tabName === 'clients') { document.getElementById('tabClients').classList.remove('d-none'); document.getElementById('navClients').classList.add('active'); }
-    if (tabName === 'followups') { document.getElementById('tabFollowups').classList.remove('d-none'); document.getElementById('navFollowups').classList.add('active'); }
-    if (tabName === 'bookings') { document.getElementById('tabBookings').classList.remove('d-none'); document.getElementById('navBookings').classList.add('active'); }
-    if (tabName === 'commissions') { document.getElementById('tabCommissions').classList.remove('d-none'); document.getElementById('navCommissions').classList.add('active'); }
-    if (tabName === 'reports') { document.getElementById('tabReports').classList.remove('d-none'); document.getElementById('navReports').classList.add('active'); renderReports(); }
-    if (tabName === 'settings') { document.getElementById('tabSettings').classList.remove('d-none'); document.getElementById('navSettings').classList.add('active'); }
+    if (tabName === 'clients') document.getElementById('tabClients').classList.remove('d-none');
+    if (tabName === 'followups') document.getElementById('tabFollowups').classList.remove('d-none');
+    if (tabName === 'bookings') document.getElementById('tabBookings').classList.remove('d-none');
+    if (tabName === 'commissions') document.getElementById('tabCommissions').classList.remove('d-none');
+    if (tabName === 'reports') document.getElementById('tabReports').classList.remove('d-none');
+    if (tabName === 'settings') document.getElementById('tabSettings').classList.remove('d-none');
 }
 
 function populateDropdowns() {
     const addSelect = document.getElementById('assignedEmployee');
-    const bookingClientSelect = document.getElementById('bookingClientSelect');
-    const followupClientSelect = document.getElementById('followupClientSelect');
-    
-    if (addSelect) addSelect.innerHTML = ''; 
-    if (bookingClientSelect) bookingClientSelect.innerHTML = '';
-    if (followupClientSelect) followupClientSelect.innerHTML = '';
-
-    validUsers.forEach(emp => {
-        if (addSelect) addSelect.innerHTML += `<option value="${emp.email}">${emp.name}</option>`;
-    });
-
-    clients.forEach(c => {
-        if (bookingClientSelect) bookingClientSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-        if (followupClientSelect) followupClientSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-    });
+    if (addSelect) {
+        addSelect.innerHTML = '';
+        validUsers.forEach(emp => {
+            addSelect.innerHTML += `<option value="${emp.email}">${emp.name}</option>`;
+        });
+    }
 }
 
 function openAddClientModal() {
@@ -734,9 +481,7 @@ async function handleAddClient(event) {
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(clientData)
         });
 
@@ -782,18 +527,11 @@ function renderClients() {
                 <td><span class="badge bg-light text-dark border">${client.assignedTo || 'غير مسند'}</span></td>
                 <td><span class="badge bg-primary">${client.status || 'جديد'}</span></td>
                 <td><small class="text-muted">${client.notes || '-'}</small></td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary me-1"><i class="fa-solid fa-pen-to-square"></i></button>
-                </td>
+                <td><button class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen-to-square"></i></button></td>
             </tr>
         `;
     });
 }
-
-function renderFollowups() {}
-function renderBookings() {}
-function renderCommissions() {}
-function renderReports() {}
 </script>
 
 </body>
