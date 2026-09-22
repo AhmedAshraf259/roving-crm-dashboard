@@ -310,7 +310,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// رابط السيرفر السحابي المحدث على Render
+// مسار الـ API المباشر على Vercel Serverless Functions
 const API_URL = '/api/clients';
 let validUsers = [
     { email: "asmaa.ashraf.1312002@gmail.com", pass: "Asmaa@2026", role: "Admin", name: "Asmaa Ashraf", commissionRate: 10 },
@@ -337,13 +337,10 @@ function toggleSidebar() {
 
 async function fetchClients() {
     try {
-        const response = await fetch('/api/clients');
+        const response = await fetch(API_URL);
         const data = await response.json();
-        
-        // التأكد من أن البيانات القادمة هي مصفوفة وليست رسالة خطأ
-        const clients = Array.isArray(data) ? data : (data.clients || []);
-        
-        renderClients(clients);
+        clients = Array.isArray(data) ? data : [];
+        renderClients();
     } catch (error) {
         console.error('خطأ في جلب العملاء:', error);
     }
@@ -463,7 +460,6 @@ async function handleAddClient(event) {
             bootstrap.Modal.getInstance(document.getElementById('addClientModal')).hide();
             fetchClients(); 
         } else {
-            // عرض رسالة الخطأ القادمة من السيرفر مباشرة لتوضيح السبب
             alert('فشل الحفظ: ' + (result.error || 'خطأ غير معروف') + (result.details ? ' - ' + result.details : ''));
         }
     } catch (error) {
