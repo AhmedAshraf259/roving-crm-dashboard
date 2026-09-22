@@ -452,13 +452,16 @@ async function handleAddClient(event) {
             body: JSON.stringify(clientData)
         });
 
+        const result = await response.json();
+
         if (response.ok) {
             alert('تم إضافة العميل وحفظه على السحابة بنجاح!');
             document.getElementById('addClientForm').reset();
             bootstrap.Modal.getInstance(document.getElementById('addClientModal')).hide();
             fetchClients(); 
         } else {
-            alert('فشل حفظ العميل، تأكد من البيانات المدخلة.');
+            // عرض رسالة الخطأ القادمة من السيرفر مباشرة لتوضيح السبب
+            alert('فشل الحفظ: ' + (result.error || 'خطأ غير معروف') + (result.details ? ' - ' + result.details : ''));
         }
     } catch (error) {
         console.error('خطأ في الاتصال بالسيرفر:', error);
