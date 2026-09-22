@@ -10,8 +10,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js for Graphs -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
@@ -310,9 +308,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// مسار الـ API المباشر على Vercel Serverless Functions
-// ضع رابط سيرفر الـ Render الصحيح هنا
-const API_URL = 'https://roving-crm-backend.onrender.com/api/clients';let validUsers = [
+let validUsers = [
     { email: "asmaa.ashraf.1312002@gmail.com", pass: "Asmaa@2026", role: "Admin", name: "Asmaa Ashraf", commissionRate: 10 },
     { email: "ahmedashraf88513@gmail.com", pass: "AhmedA#88", role: "Admin", name: "Ahmed Ashraf", commissionRate: 10 },
     { email: "ahmedwanas11@gmail.com", pass: "Wanas!Pass2026", role: "Admin", name: "Ahmed Wanas", commissionRate: 10 },
@@ -335,14 +331,16 @@ function toggleSidebar() {
     }
 }
 
-async function fetchClients() {
+// جلب العملاء من التخزين المحلي للمتصفح
+function fetchClients() {
     try {
-        const response = await fetch(API_URL);
-        const data = await response.json();
-        clients = Array.isArray(data) ? data : [];
+        const storedClients = localStorage.getItem('roving_crm_clients');
+        clients = storedClients ? JSON.parse(storedClients) : [];
         renderClients();
     } catch (error) {
         console.error('خطأ في جلب العملاء:', error);
+        clients = [];
+        renderClients();
     }
 }
 
@@ -391,8 +389,8 @@ function handleLogout() {
     document.getElementById('appSection').classList.add('d-none');
 }
 
-async function initApp() {
-    document.getElementById('userDisplayName').innerText = currentUser.email;
+function initApp() {
+    document.getElementById('userDisplayName').innerText = currentUser.name || currentUser.email;
     document.getElementById('userRoleBadge').innerText = currentUser.role;
     
     if (currentUser.role === 'Admin') {
@@ -401,7 +399,7 @@ async function initApp() {
         document.getElementById('userRoleBadge').className = "badge bg-warning text-dark mt-1";
     }
 
-    await fetchClients(); 
+    fetchClients(); 
     populateDropdowns();  
 }
 
@@ -432,39 +430,33 @@ function openAddClientModal() {
     populateDropdowns(); 
 }
 
-async function handleAddClient(event) {
+// حفظ العميل محلياً بدون الحاجة لسيرفر خارجي معطل
+function handleAddClient(event) {
     event.preventDefault();
 
     const clientData = {
+        id: Date.now().toString(),
         name: document.getElementById('clientName').value.trim(),
         phone: document.getElementById('clientPhone').value.trim(),
         passport: document.getElementById('clientPassport').value.trim(),
         source: document.getElementById('clientSource').value,
         status: document.getElementById('clientStatusSelect').value,
         assignedTo: document.getElementById('assignedEmployee').value,
-        notes: document.getElementById('clientNotes').value.trim()
+        notes: document.getElementById('clientNotes').value.trim(),
+        createdAt: new Date().toISOString()
     };
 
     try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(clientData)
-        });
+        clients.unshift(clientData); // إضافة العميل الجديد في بداية القائمة
+        localStorage.setItem('roving_crm_clients', JSON.stringify(clients));
 
-        const result = await response.json();
-
-        if (response.ok) {
-            alert('تم إضافة العميل وحفظه على السحابة بنجاح!');
-            document.getElementById('addClientForm').reset();
-            bootstrap.Modal.getInstance(document.getElementById('addClientModal')).hide();
-            fetchClients(); 
-        } else {
-            alert('فشل الحفظ: ' + (result.error || 'خطأ غير معروف') + (result.details ? ' - ' + result.details : ''));
-        }
+        alert('تم إضافة العميل وحفظه بنجاح!');
+        document.getElementById('addClientForm').reset();
+        bootstrap.Modal.getInstance(document.getElementById('addClientModal')).hide();
+        renderClients(); 
     } catch (error) {
-        console.error('خطأ في الاتصال بالسيرفر:', error);
-        alert('حدث خطأ أثناء الاتصال بالسيرفر.');
+        console.error('خطأ في حفظ العميل:', error);
+        alert('حدث خطأ أثناء حفظ العميل محلياً.');
     }
 }
 
@@ -485,10 +477,15 @@ function renderClients() {
         list = list.filter(c => c.phone && c.phone.includes(phoneQuery));
     }
 
-    list.forEach(client => {
+    if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">لا توجد بيانات عملاء مسجلة حالياً</td></tr>`;
+        return;
+    }
+
+    list.forEach((client, index) => {
         tbody.innerHTML += `
             <tr>
-                <td><span class="badge bg-dark">#</span></td>
+                <td><span class="badge bg-dark">#${index + 1}</span></td>
                 <td><strong>${client.name}</strong></td>
                 <td><span class="badge bg-secondary">${client.source || '-'}</span></td>
                 <td><small><i class="fa-solid fa-phone me-1"></i>${client.phone || '-'}</small></td>
@@ -496,7 +493,7 @@ function renderClients() {
                 <td><span class="badge bg-light text-dark border">${client.assignedTo || 'غير مسند'}</span></td>
                 <td><span class="badge bg-primary">${client.status || 'جديد'}</span></td>
                 <td><small class="text-muted">${client.notes || '-'}</small></td>
-                <td><button class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen-to-square"></i></button></td>
+                <td><button class="btn btn-sm btn-outline-primary" title="تعديل"><i class="fa-solid fa-pen-to-square"></i></button></td>
             </tr>
         `;
     });
