@@ -368,7 +368,6 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ربط النموذج بحدث الإرسال هنا لضمان تفعيله دائماً بدقة
     const clientForm = document.getElementById('addClientForm');
     if (clientForm) {
         clientForm.addEventListener('submit', handleAddClient);
@@ -468,8 +467,10 @@ function openAddClientModal() {
     populateDropdowns(); 
 }
 
+// دالة الحفظ المحدثة مع التنبيهات الفورية لفحص سبب أي مشكلة محتملة
 async function handleAddClient(event) {
     event.preventDefault();
+    alert("تم الضغط على زر حفظ العميل بنجاح!");
 
     const clientData = {
         name: document.getElementById('clientName').value.trim(),
@@ -489,7 +490,7 @@ async function handleAddClient(event) {
         });
 
         if (response.ok) {
-            alert('تم إضافة العميل وحفظه في قاعدة البيانات بنجاح!');
+            alert('تم الحفظ بنجاح على السيرفر!');
             document.getElementById('addClientForm').reset();
             
             const modalEl = document.getElementById('addClientModal');
@@ -500,10 +501,10 @@ async function handleAddClient(event) {
             
             fetchClients(); 
         } else {
-            alert('حدث خطأ أثناء حفظ العميل على السيرفر.');
+            alert('السيرفر رفض الطلب (Response Status Not OK).');
         }
     } catch (error) {
-        alert('تعذر الاتصال بالسيرفر وحفظ البيانات.');
+        alert('حدث خطأ في الاتصال بالشبكة: ' + error.message);
     }
 }
 
@@ -518,7 +519,7 @@ function renderClients() {
         list = list.filter(c => c.assignedTo === currentUser.name);
     }
 
-    const phoneQuery = document.getElementById('clientPhoneSearch') ? document.getElementById('clientPhoneSearch').value.trim() : "";
+    const phoneQuery = document.getElementById('clientPhoneSearch') ? document.getElementById('clientPhoneSearch'].value.trim() : "";
     if (phoneQuery !== "") {
         list = list.filter(c => c.phone && c.phone.includes(phoneQuery));
     }

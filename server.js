@@ -48,7 +48,7 @@ app.post('/api/clients', async (req, res) => {
 });
 
 // تشغيل السيرفر
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`السيرفر يعمل على المنفذ ${PORT}`);
 });
