@@ -367,6 +367,12 @@ window.addEventListener('DOMContentLoaded', () => {
             localStorage.removeItem('crm_user');
         }
     }
+
+    // ربط النموذج بحدث الإرسال هنا لضمان تفعيله دائماً بدقة
+    const clientForm = document.getElementById('addClientForm');
+    if (clientForm) {
+        clientForm.addEventListener('submit', handleAddClient);
+    }
 });
 
 document.getElementById('loginForm').addEventListener('submit', function(e) {
@@ -416,14 +422,12 @@ function initApp() {
 
 function switchTab(tabName) {
     document.querySelectorAll('.tab-content-item').forEach(el => el.classList.add('d-none'));
-    
-    // إزالة التنشيط عن كل الروابط وإضافته للرابط الحالي
     document.querySelectorAll('.sidebar nav a').forEach(el => el.classList.remove('active'));
 
     if (tabName === 'clients') {
         document.getElementById('tabClients').classList.remove('d-none');
         document.getElementById('navClients').classList.add('active');
-        fetchClients(); // جلب البيانات المحدثة من قاعدة البيانات فور فتح التبويب
+        fetchClients(); 
     }
     if (tabName === 'followups') {
         document.getElementById('tabFollowups').classList.remove('d-none');
@@ -503,13 +507,8 @@ async function handleAddClient(event) {
     }
 }
 
-const clientForm = document.getElementById('addClientForm');
-if (clientForm) {
-    clientForm.addEventListener('submit', handleAddClient);
-}
-
 function renderClients() {
-    const tbody = document.getElementById('clientsTableBoard') || document.getElementById('clientsTableBody');
+    const tbody = document.getElementById('clientsTableBody');
     if (!tbody) return;
     tbody.innerHTML = '';
     
