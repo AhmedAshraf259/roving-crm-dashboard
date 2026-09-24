@@ -8,16 +8,16 @@ app.use(express.json());
 app.use(cors());
 
 // الاتصال بقاعدة البيانات السحابية الخاصة بك
-const MONGO_URI = "mongodb://ahmedashraf88513_db_user:68mcJLbyolkGSsAh@cluster0-shard-00-00.ht4llir.mongodb.net:27017,cluster0-shard-00-01.ht4llir.mongodb.net:27017,cluster0-shard-00-02.ht4llir.mongodb.net:27017/?ssl=true&replicaSet=atlas-12345-shard-0&authSource=admin&retryWrites=true&w=majority";
+const MONGO_URI = process.env.MONGO_URL || "mongodb://ahmedashraf88513_db_user:68mcJLbyolkGSsAh@cluster0-shard-00-00.ht4llir.mongodb.net:27017,cluster0-shard-00-01.ht4llir.mongodb.net:27017,cluster0-shard-00-02.ht4llir.mongodb.net:27017/?ssl=true&replicaSet=atlas-12345-shard-0&authSource=admin&retryWrites=true&w=majority";
 
 mongoose.connect(MONGO_URI)
   .then(() => console.log('تم الاتصال بقاعدة بيانات MongoDB Atlas بنجاح'))
   .catch(err => console.error('خطأ في الاتصال بقاعدة البيانات:', err));
 
-// تصميم هيكل بيانات العميل (Schema)
+// تصميم هيكل بيانات العميل بدون قيود تسبب أخطاء
 const clientSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  phone: { type: String, required: true },
+  phone: String,
   passport: String,
   source: String,
   assignedTo: String, 
@@ -44,7 +44,7 @@ app.post('/api/clients', async (req, res) => {
     const savedClient = await newClient.save();
     res.status(201).json(savedClient);
   } catch (err) {
-    res.status(400).json({ error: 'خطأ في حفظ العميل' });
+    res.status(400).json({ error: 'خطأ في حفظ العميل', details: err.message });
   }
 });
 
