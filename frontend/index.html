@@ -416,12 +416,35 @@ function initApp() {
 
 function switchTab(tabName) {
     document.querySelectorAll('.tab-content-item').forEach(el => el.classList.add('d-none'));
-    if (tabName === 'clients') document.getElementById('tabClients').classList.remove('d-none');
-    if (tabName === 'followups') document.getElementById('tabFollowups').classList.remove('d-none');
-    if (tabName === 'bookings') document.getElementById('tabBookings').classList.remove('d-none');
-    if (tabName === 'commissions') document.getElementById('tabCommissions').classList.remove('d-none');
-    if (tabName === 'reports') document.getElementById('tabReports').classList.remove('d-none');
-    if (tabName === 'settings') document.getElementById('tabSettings').classList.remove('d-none');
+    
+    // إزالة التنشيط عن كل الروابط وإضافته للرابط الحالي
+    document.querySelectorAll('.sidebar nav a').forEach(el => el.classList.remove('active'));
+
+    if (tabName === 'clients') {
+        document.getElementById('tabClients').classList.remove('d-none');
+        document.getElementById('navClients').classList.add('active');
+        fetchClients(); // جلب البيانات المحدثة من قاعدة البيانات فور فتح التبويب
+    }
+    if (tabName === 'followups') {
+        document.getElementById('tabFollowups').classList.remove('d-none');
+        document.getElementById('navFollowups').classList.add('active');
+    }
+    if (tabName === 'bookings') {
+        document.getElementById('tabBookings').classList.remove('d-none');
+        document.getElementById('navBookings').classList.add('active');
+    }
+    if (tabName === 'commissions') {
+        document.getElementById('tabCommissions').classList.remove('d-none');
+        document.getElementById('navCommissions').classList.add('active');
+    }
+    if (tabName === 'reports') {
+        document.getElementById('tabReports').classList.remove('d-none');
+        document.getElementById('navReports').classList.add('active');
+    }
+    if (tabName === 'settings') {
+        document.getElementById('tabSettings').classList.remove('d-none');
+        document.getElementById('navSettings').classList.add('active');
+    }
 }
 
 function populateDropdowns() {
@@ -486,7 +509,7 @@ if (clientForm) {
 }
 
 function renderClients() {
-    const tbody = document.getElementById('clientsTableBody');
+    const tbody = document.getElementById('clientsTableBoard') || document.getElementById('clientsTableBody');
     if (!tbody) return;
     tbody.innerHTML = '';
     
