@@ -490,7 +490,6 @@ function renderClients() {
     if (!tbody) return;
     tbody.innerHTML = '';
     
-    // تأكيد أن clients مصفوفة دائماً لمنع أي أخطاء
     let list = Array.isArray(clients) ? clients : [];
 
     if (currentUser && currentUser.role === 'Sales') {
