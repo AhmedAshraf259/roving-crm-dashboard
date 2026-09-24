@@ -447,12 +447,19 @@ function handleAddClient(event) {
     };
 
     try {
-        clients.unshift(clientData); // إضافة العميل الجديد في بداية القائمة
+        clients.unshift(clientData);
         localStorage.setItem('roving_crm_clients', JSON.stringify(clients));
 
         alert('تم إضافة العميل وحفظه بنجاح!');
         document.getElementById('addClientForm').reset();
-        bootstrap.Modal.getInstance(document.getElementById('addClientModal')).hide();
+        
+        // إغلاق النافذة المنبثقة بشكل صحيح
+        const modalEl = document.getElementById('addClientModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (modalInstance) {
+            modalInstance.hide();
+        }
+        
         renderClients(); 
     } catch (error) {
         console.error('خطأ في حفظ العميل:', error);
