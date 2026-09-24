@@ -308,6 +308,9 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+// رابط السيرفر الأساسي على Render
+const API_URL = "https://roving-crm-backend.onrender.com";
+
 let validUsers = [
     { email: "asmaa.ashraf.1312002@gmail.com", pass: "Asmaa@2026", role: "Admin", name: "Asmaa Ashraf", commissionRate: 10 },
     { email: "ahmedashraf88513@gmail.com", pass: "AhmedA#88", role: "Admin", name: "Ahmed Ashraf", commissionRate: 10 },
@@ -336,14 +339,18 @@ function toggleSidebar() {
     }
 }
 
-// جلب العملاء من التخزين المحلي للمتصفح
-function fetchClients() {
+// جلب العملاء من قاعدة بيانات MongoDB عبر السيرفر
+async function fetchClients() {
     try {
-        const storedClients = localStorage.getItem('roving_crm_clients');
-        clients = storedClients ? JSON.parse(storedClients) : [];
-        renderClients();
+        const response = await fetch(`${API_URL}/api/clients`);
+        if (response.ok) {
+            clients = await response.json();
+            renderClients();
+        } else {
+            console.error('فشل في جلب العملاء من السيرفر');
+        }
     } catch (error) {
-        console.error('خطأ في جلب العملاء:', error);
+        console.error('خطأ في الاتصال بالسيرفر:', error);
         clients = [];
         renderClients();
     }
@@ -435,40 +442,47 @@ function openAddClientModal() {
     populateDropdowns(); 
 }
 
-// حفظ العميل محلياً بدون الحاجة لسيرفر خارجي معطل
-function handleAddClient(event) {
+// حفظ العميل وإرساله مباشرة لقاعدة بيانات MongoDB عبر السيرفر
+async function handleAddClient(event) {
     event.preventDefault();
 
     const clientData = {
-        id: Date.now().toString(),
         name: document.getElementById('clientName').value.trim(),
         phone: document.getElementById('clientPhone').value.trim(),
         passport: document.getElementById('clientPassport').value.trim(),
         source: document.getElementById('clientSource').value,
         status: document.getElementById('clientStatusSelect').value,
         assignedTo: document.getElementById('assignedEmployee').value,
-        notes: document.getElementById('clientNotes').value.trim(),
-        createdAt: new Date().toISOString()
+        notes: document.getElementById('clientNotes').value.trim()
     };
 
     try {
-        clients.unshift(clientData);
-        localStorage.setItem('roving_crm_clients', JSON.stringify(clients));
+        const response = await fetch(`${API_URL}/api/clients`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(clientData)
+        });
 
-        alert('تم إضافة العميل وحفظه بنجاح!');
-        document.getElementById('addClientForm').reset();
-        
-        // إغلاق النافذة المنبثقة بشكل صحيح
-        const modalEl = document.getElementById('addClientModal');
-        const modalInstance = bootstrap.Modal.getInstance(modalEl);
-        if (modalInstance) {
-            modalInstance.hide();
+        if (response.ok) {
+            alert('تم إضافة العميل وحفظه في قاعدة البيانات بنجاح!');
+            document.getElementById('addClientForm').reset();
+            
+            // إغلاق النافذة المنبثقة بشكل صحيح
+            const modalEl = document.getElementById('addClientModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) {
+                modalInstance.hide();
+            }
+            
+            fetchClients(); // إعادة جلب العملاء لتحديث الجدول فوراً للجميع
+        } else {
+            alert('حدث خطأ أثناء حفظ العميل على السيرفر.');
         }
-        
-        renderClients(); 
     } catch (error) {
-        console.error('خطأ في حفظ العميل:', error);
-        alert('حدث خطأ أثناء حفظ العميل محلياً.');
+        console.error('خطأ في الاتصال:', error);
+        alert('تعذر الاتصال بالسيرفر وحفظ البيانات.');
     }
 }
 
