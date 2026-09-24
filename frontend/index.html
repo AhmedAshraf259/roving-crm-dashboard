@@ -15,7 +15,7 @@
         :root {
             --roving-green: #293E35;      
             --roving-dark-green: #1A2822; 
-            --roving-orange: #D45B38;     
+            --roving-orange: #D45B38;    
             --roving-light-orange: #E67E55; 
             --roving-bg: #F4F1EA;        
         }
@@ -321,13 +321,18 @@ let clients = [];
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebarContainer');
     const mainContent = document.getElementById('mainContentArea');
+    const showSidebarBtn = document.getElementById('showSidebarBtn');
+    
     sidebar.classList.toggle('collapsed');
+    
     if (sidebar.classList.contains('collapsed')) {
         mainContent.classList.remove('col-md-10');
         mainContent.classList.add('col-md-12');
+        if (showSidebarBtn) showSidebarBtn.classList.remove('d-none');
     } else {
         mainContent.classList.remove('col-md-12');
         mainContent.classList.add('col-md-10');
+        if (showSidebarBtn) showSidebarBtn.classList.add('d-none');
     }
 }
 
